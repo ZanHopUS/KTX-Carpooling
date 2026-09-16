@@ -63,3 +63,28 @@ export const PRICING_CONFIG = {
   PRICE_PER_KM: 2000,
   MINIMUM_PRICE: 5000,
 } as const;
+
+export const ALLOWED_STUDENT_EMAIL_DOMAINS = [
+  'student.hcmus.edu.vn',
+  'mcs.hcmus.edu.vn',
+  'hcmus.edu.vn',
+  'st.hcmut.edu.vn',
+  'hcmut.edu.vn',
+  'student.uit.edu.vn',
+  'uit.edu.vn',
+  'student.ussh.edu.vn',
+  'ussh.edu.vn',
+  'student.hcmiu.edu.vn',
+  'hcmiu.edu.vn',
+  'st.uel.edu.vn',
+  'uel.edu.vn',
+] as const;
+
+export function isValidStudentEmailDomain(email: string): boolean {
+  if (!email || !email.includes('@')) return false;
+  const domain = email.split('@')[1]?.toLowerCase().trim();
+  if (!domain) return false;
+  // Check if domain is in allowed list or ends with .edu.vn
+  return ALLOWED_STUDENT_EMAIL_DOMAINS.some((allowed) => domain === allowed) || domain.endsWith('.edu.vn');
+}
+
