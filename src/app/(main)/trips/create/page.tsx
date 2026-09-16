@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DORM_AREAS, DORM_BUILDINGS, UNIVERSITIES } from '@/utils/constants';
-import { calculateSuggestedPrice, formatVND, getExactDistance } from '@/lib/pricing';
+import { calculateSuggestedPrice, formatVND, fetchLiveMotorcycleDistance } from '@/lib/pricing';
 import { createTripAction } from '../actions';
 
 export default function CreateTripPage() {
@@ -12,16 +12,28 @@ export default function CreateTripPage() {
   const [selectedUniId, setSelectedUniId] = useState<string>('HCMUS');
   const [selectedCampusIndex, setSelectedCampusIndex] = useState<number>(1); // Default to CS2 Linh Trung
   const [distanceKm, setDistanceKm] = useState<number>(3.8);
+  const [fetchingDistance, setFetchingDistance] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const selectedUni = UNIVERSITIES.find((u) => u.id === selectedUniId) || UNIVERSITIES[0];
   const calculatedPrice = calculateSuggestedPrice(distanceKm);
 
-  // Auto update exact distance when Area, University or Campus changes
+  // Auto update exact distance from live OpenStreetMap Routing API
   useEffect(() => {
-    const exactDist = getExactDistance(selectedArea, selectedUniId, selectedCampusIndex);
-    setDistanceKm(exactDist);
+    let isMounted = true;
+    async function updateDistance() {
+      setFetchingDistance(true);
+      const exactDist = await fetchLiveMotorcycleDistance(selectedArea, selectedUniId, selectedCampusIndex);
+      if (isMounted) {
+        setDistanceKm(exactDist);
+        setFetchingDistance(false);
+      }
+    }
+    updateDistance();
+    return () => {
+      isMounted = false;
+    };
   }, [selectedArea, selectedUniId, selectedCampusIndex]);
 
   // Set default date to today YYYY-MM-DD
@@ -177,7 +189,7 @@ export default function CreateTripPage() {
                   value={selectedUniId}
                   onChange={(e) => {
                     setSelectedUniId(e.target.value);
-                    setSelectedCampusIndex(0); // reset to first campus
+                    setSelectedCampusIndex(0);
                   }}
                   required
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -227,13 +239,13 @@ export default function CreateTripPage() {
           {/* Section 3: Giá gợi ý & Thiết lập chuyến */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>💰</span> 3. Khoảng cách & Giá đóng góp tham khảo
+              <span>💰</span> 3. Khoảng cách API & Giá đóng góp tham khảo
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Khoảng cách tự động (km)
+                  Khoảng cách thực tế (Tra tự động API)
                 </label>
                 <div className="relative">
                   <input
@@ -247,8 +259,12 @@ export default function CreateTripPage() {
                   />
                   <span className="absolute right-3 top-2.5 text-xs text-slate-400">km</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  ✨ Tự động tính toán từ KTX đến cơ sở trường
+                <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                  {fetchingDistance ? (
+                    <span className="text-amber-400 animate-pulse">⏳ Đang gọi Maps Routing API...</span>
+                  ) : (
+                    <span>🗺️ Tra tuyến đường thực tế qua OpenStreetMap API</span>
+                  )}
                 </p>
               </div>
 
