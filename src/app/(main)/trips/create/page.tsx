@@ -1,21 +1,28 @@
 'use me';
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DORM_AREAS, DORM_BUILDINGS, UNIVERSITIES } from '@/utils/constants';
-import { calculateSuggestedPrice, formatVND } from '@/lib/pricing';
+import { calculateSuggestedPrice, formatVND, getExactDistance } from '@/lib/pricing';
 import { createTripAction } from '../actions';
 
 export default function CreateTripPage() {
   const [selectedArea, setSelectedArea] = useState<keyof typeof DORM_BUILDINGS>('KHU_B');
   const [selectedUniId, setSelectedUniId] = useState<string>('HCMUS');
-  const [distanceKm, setDistanceKm] = useState<number>(3);
+  const [selectedCampusIndex, setSelectedCampusIndex] = useState<number>(1); // Default to CS2 Linh Trung
+  const [distanceKm, setDistanceKm] = useState<number>(3.8);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const selectedUni = UNIVERSITIES.find((u) => u.id === selectedUniId) || UNIVERSITIES[0];
   const calculatedPrice = calculateSuggestedPrice(distanceKm);
+
+  // Auto update exact distance when Area, University or Campus changes
+  useEffect(() => {
+    const exactDist = getExactDistance(selectedArea, selectedUniId, selectedCampusIndex);
+    setDistanceKm(exactDist);
+  }, [selectedArea, selectedUniId, selectedCampusIndex]);
 
   // Set default date to today YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
@@ -168,7 +175,10 @@ export default function CreateTripPage() {
                 <select
                   name="destinationUniversity"
                   value={selectedUniId}
-                  onChange={(e) => setSelectedUniId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedUniId(e.target.value);
+                    setSelectedCampusIndex(0); // reset to first campus
+                  }}
                   required
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -186,10 +196,12 @@ export default function CreateTripPage() {
                 </label>
                 <select
                   name="destinationCampus"
+                  value={selectedCampusIndex}
+                  onChange={(e) => setSelectedCampusIndex(parseInt(e.target.value, 10))}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {selectedUni.campuses.map((campus) => (
-                    <option key={campus} value={campus} className="bg-slate-900">
+                  {selectedUni.campuses.map((campus, idx) => (
+                    <option key={campus} value={idx} className="bg-slate-900">
                       {campus}
                     </option>
                   ))}
@@ -221,17 +233,23 @@ export default function CreateTripPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Khoảng cách dự kiến (km)
+                  Khoảng cách tự động (km)
                 </label>
-                <input
-                  type="number"
-                  min="0.5"
-                  max="30"
-                  step="0.5"
-                  value={distanceKm}
-                  onChange={(e) => setDistanceKm(parseFloat(e.target.value) || 1)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0.5"
+                    max="30"
+                    step="0.1"
+                    value={distanceKm}
+                    onChange={(e) => setDistanceKm(parseFloat(e.target.value) || 1)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-300"
+                  />
+                  <span className="absolute right-3 top-2.5 text-xs text-slate-400">km</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  ✨ Tự động tính toán từ KTX đến cơ sở trường
+                </p>
               </div>
 
               <div>
@@ -258,7 +276,7 @@ export default function CreateTripPage() {
                 <p className="text-xs text-slate-400">Thanh toán trực tiếp giữa Tài xế & Hành khách</p>
               </div>
               <div className="text-right">
-                <span className="text-xl font-extrabold text-blue-400">{formatVND(calculatedPrice)}</span>
+                <span className="text-2xl font-black text-blue-400">{formatVND(calculatedPrice)}</span>
               </div>
             </div>
 
