@@ -1,4 +1,3 @@
-'use me';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import { createTripAction } from '../actions';
 export default function CreateTripPage() {
   const [selectedArea, setSelectedArea] = useState<keyof typeof DORM_BUILDINGS>('KHU_B');
   const [selectedUniId, setSelectedUniId] = useState<string>('HCMUS');
-  const [selectedCampusIndex, setSelectedCampusIndex] = useState<number>(1); // Default to CS2 Linh Trung
+  const [selectedCampusIndex, setSelectedCampusIndex] = useState<number>(1);
   const [distanceKm, setDistanceKm] = useState<number>(3.8);
   const [fetchingDistance, setFetchingDistance] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -19,7 +18,6 @@ export default function CreateTripPage() {
   const selectedUni = UNIVERSITIES.find((u) => u.id === selectedUniId) || UNIVERSITIES[0];
   const calculatedPrice = calculateSuggestedPrice(distanceKm);
 
-  // Auto update exact distance from live OpenStreetMap Routing API
   useEffect(() => {
     let isMounted = true;
     async function updateDistance() {
@@ -31,22 +29,17 @@ export default function CreateTripPage() {
       }
     }
     updateDistance();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [selectedArea, selectedUniId, selectedCampusIndex]);
 
-  // Set default date to today YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
-
     const formData = new FormData(e.currentTarget);
     formData.set('distanceKm', distanceKm.toString());
-
     const result = await createTripAction(formData);
     if (result?.error) {
       setErrorMsg(result.error);
@@ -55,284 +48,183 @@ export default function CreateTripPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 md:p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header Navigation */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5"
-          >
-            ← Quay lại Bảng điều khiển
-          </Link>
-          <span className="text-xs px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
-            Tài xế xe máy
-          </span>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          style={{ color: 'var(--text-secondary)' }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </Link>
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Đăng chuyến đi mới</h1>
+          <p className="text-sm text-gray-500">Điền thông tin lịch trình để ghép sinh viên cùng tuyến đi học</p>
         </div>
+      </div>
 
-        {/* Title */}
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Đăng chuyến đi mới 🛵</h1>
-          <p className="text-sm text-slate-400">
-            Đăng lịch trình đi học từ KTX để ghép chở thêm bạn sinh viên cùng tuyến
-          </p>
+      {errorMsg && (
+        <div className="alert alert-error" role="alert">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" className="shrink-0 mt-0.5">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+          </svg>
+          <span>{errorMsg}</span>
         </div>
+      )}
 
-        {errorMsg && (
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-medium">
-            ⚠️ {errorMsg}
-          </div>
-        )}
+      <form onSubmit={handleSubmit}>
+        <div className="card overflow-hidden divide-y" style={{ borderColor: 'var(--border-default)' }}>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl">
-          {/* Section 1: Thời gian & Điểm đón KTX */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>📍</span> 1. Thời gian & Điểm đón tại KTX
-            </h3>
+          {/* ── Nhóm 1: Thời gian & Điểm đón ── */}
+          <div className="p-5 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
+              1 · Thời gian & Điểm đón tại KTX
+            </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Ngày đi <span className="text-rose-400">*</span>
-                </label>
-                <input
-                  name="date"
-                  type="date"
-                  defaultValue={todayStr}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="form-label" htmlFor="ct-date">Ngày đi <span className="text-red-500">*</span></label>
+                <input id="ct-date" name="date" type="date" defaultValue={todayStr} required className="form-input" />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Giờ đón <span className="text-rose-400">*</span>
-                </label>
-                <input
-                  name="pickupTime"
-                  type="time"
-                  defaultValue="06:30"
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="form-label" htmlFor="ct-time">Giờ đón <span className="text-red-500">*</span></label>
+                <input id="ct-time" name="pickupTime" type="time" defaultValue="06:30" required className="form-input" />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Khu KTX đón <span className="text-rose-400">*</span>
-                </label>
-                <select
-                  name="pickupArea"
-                  value={selectedArea}
+                <label className="form-label" htmlFor="ct-area">Khu KTX <span className="text-red-500">*</span></label>
+                <select id="ct-area" name="pickupArea" value={selectedArea}
                   onChange={(e) => setSelectedArea(e.target.value as keyof typeof DORM_BUILDINGS)}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                  required className="form-select">
                   {DORM_AREAS.map((area) => (
-                    <option key={area.id} value={area.id} className="bg-slate-900">
-                      {area.name}
-                    </option>
+                    <option key={area.id} value={area.id}>{area.name}</option>
                   ))}
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Tòa nhà KTX <span className="text-rose-400">*</span>
-                </label>
-                <select
-                  name="pickupBuilding"
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                <label className="form-label" htmlFor="ct-building">Tòa nhà <span className="text-red-500">*</span></label>
+                <select id="ct-building" name="pickupBuilding" required className="form-select">
                   {DORM_BUILDINGS[selectedArea]?.map((b) => (
-                    <option key={b} value={b} className="bg-slate-900">
-                      Tòa {b}
-                    </option>
+                    <option key={b} value={b}>Tòa {b}</option>
                   ))}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Điểm đón cụ thể <span className="text-rose-400">*</span>
-              </label>
-              <input
-                name="pickupPoint"
-                type="text"
-                required
-                placeholder="Ví dụ: Trước sảnh tòa B2, Cổng phụ KTX Khu B"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <label className="form-label" htmlFor="ct-point">Điểm đón cụ thể <span className="text-red-500">*</span></label>
+              <input id="ct-point" name="pickupPoint" type="text" required
+                placeholder="Vd: Trước sảnh tòa B2, cổng phụ KTX Khu B..."
+                className="form-input" />
             </div>
           </div>
 
-          <hr className="border-slate-800" />
+          {/* ── Nhóm 2: Điểm đến ── */}
+          <div className="p-5 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
+              2 · Trường đại học đến
+            </p>
 
-          {/* Section 2: Trường Đại học đến */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>🎓</span> 2. Trường Đại học đến & Cơ sở
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Trường Đại học đến <span className="text-rose-400">*</span>
-                </label>
-                <select
-                  name="destinationUniversity"
-                  value={selectedUniId}
-                  onChange={(e) => {
-                    setSelectedUniId(e.target.value);
-                    setSelectedCampusIndex(0);
-                  }}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                <label className="form-label" htmlFor="ct-uni">Trường đại học <span className="text-red-500">*</span></label>
+                <select id="ct-uni" name="destinationUniversity" value={selectedUniId}
+                  onChange={(e) => { setSelectedUniId(e.target.value); setSelectedCampusIndex(0); }}
+                  required className="form-select">
                   {UNIVERSITIES.map((uni) => (
-                    <option key={uni.id} value={uni.id} className="bg-slate-900">
-                      {uni.name}
-                    </option>
+                    <option key={uni.id} value={uni.id}>{uni.name}</option>
                   ))}
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Cơ sở trường
-                </label>
-                <select
-                  name="destinationCampus"
-                  value={selectedCampusIndex}
+                <label className="form-label" htmlFor="ct-campus">Cơ sở</label>
+                <select id="ct-campus" name="destinationCampus" value={selectedCampusIndex}
                   onChange={(e) => setSelectedCampusIndex(parseInt(e.target.value, 10))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                  className="form-select">
                   {selectedUni.campuses.map((campus, idx) => (
-                    <option key={campus} value={idx} className="bg-slate-900">
-                      {campus}
-                    </option>
+                    <option key={campus} value={idx}>{campus}</option>
                   ))}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Tòa nhà học / Giảng đường (Tùy chọn)
-              </label>
-              <input
-                name="destinationBuilding"
-                type="text"
-                placeholder="Ví dụ: Tòa E, Tòa C, Giảng đường 1"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <label className="form-label" htmlFor="ct-dest-building">Tòa nhà / Giảng đường (tùy chọn)</label>
+              <input id="ct-dest-building" name="destinationBuilding" type="text"
+                placeholder="Vd: Tòa E, Tòa C, Giảng đường 1..."
+                className="form-input" />
             </div>
           </div>
 
-          <hr className="border-slate-800" />
+          {/* ── Nhóm 3: Chi phí & Thiết lập ── */}
+          <div className="p-5 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
+              3 · Chi phí & Thiết lập chuyến
+            </p>
 
-          {/* Section 3: Giá gợi ý & Thiết lập chuyến */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>💰</span> 3. Khoảng cách API & Giá đóng góp tham khảo
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Khoảng cách thực tế (Tra tự động API)
+                <label className="form-label" htmlFor="ct-dist">
+                  Khoảng cách (km)
+                  {fetchingDistance && <span className="ml-1.5 font-normal" style={{ color: 'var(--color-warning)' }}>đang tra...</span>}
                 </label>
                 <div className="relative">
-                  <input
-                    type="number"
-                    min="0.5"
-                    max="30"
-                    step="0.1"
-                    value={distanceKm}
-                    onChange={(e) => setDistanceKm(parseFloat(e.target.value) || 1)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-300"
-                  />
-                  <span className="absolute right-3 top-2.5 text-xs text-slate-400">km</span>
+                  <input id="ct-dist" type="number" min="0.5" max="30" step="0.1"
+                    value={distanceKm} onChange={(e) => setDistanceKm(parseFloat(e.target.value) || 1)}
+                    className="form-input pr-10" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}>km</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                  {fetchingDistance ? (
-                    <span className="text-amber-400 animate-pulse">⏳ Đang gọi Maps Routing API...</span>
-                  ) : (
-                    <span>🗺️ Tra tuyến đường thực tế qua OpenStreetMap API</span>
-                  )}
-                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Tra tự động từ OpenStreetMap</p>
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Số chỗ trống cần ghép
-                </label>
-                <input
-                  name="availableSeats"
-                  type="number"
-                  defaultValue={1}
-                  min={1}
-                  max={1}
-                  readOnly
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 text-slate-400 text-sm cursor-not-allowed"
-                />
-                <p className="text-[11px] text-slate-500 mt-1">* Phiên bản MVP hỗ trợ ghép 1 xe 1 hành khách</p>
+                <label className="form-label" htmlFor="ct-seats">Số chỗ ghép</label>
+                <input id="ct-seats" name="availableSeats" type="number" defaultValue={1} min={1} max={1}
+                  readOnly className="form-input cursor-not-allowed" style={{ background: 'var(--bg-subtle)', color: 'var(--text-muted)' }} />
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>MVP: 1 chỗ mỗi chuyến</p>
               </div>
             </div>
 
-            {/* Price Preview Card */}
-            <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-800/50 flex items-center justify-between">
+            {/* Price preview */}
+            <div className="flex items-center justify-between p-4 rounded-xl"
+              style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)' }}>
               <div>
-                <p className="text-xs font-medium text-blue-300">Giá đóng góp tham khảo (2.000đ/km, min 5k):</p>
-                <p className="text-xs text-slate-400">Thanh toán trực tiếp giữa Tài xế & Hành khách</p>
+                <p className="text-sm font-semibold" style={{ color: '#1e40af' }}>Chi phí đóng góp tham khảo</p>
+                <p className="text-xs" style={{ color: '#3b82f6' }}>2.000đ/km · tối thiểu 5.000đ · thanh toán trực tiếp</p>
               </div>
-              <div className="text-right">
-                <span className="text-2xl font-black text-blue-400">{formatVND(calculatedPrice)}</span>
-              </div>
+              <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>{formatVND(calculatedPrice)}</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Phương thức nhận tiền
-                </label>
-                <select
-                  name="paymentMethod"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="CASH" className="bg-slate-900">💵 Tiền mặt</option>
-                  <option value="BANK_TRANSFER" className="bg-slate-900">💳 Chuyển khoản Ngân hàng</option>
+                <label className="form-label" htmlFor="ct-payment">Phương thức thanh toán</label>
+                <select id="ct-payment" name="paymentMethod" className="form-select">
+                  <option value="CASH">Tiền mặt</option>
+                  <option value="BANK_TRANSFER">Chuyển khoản</option>
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Ghi chú cho hành khách (Tùy chọn)
-                </label>
-                <input
-                  name="notes"
-                  type="text"
-                  placeholder="Ví dụ: Xe Wave xanh biển 59X1-12345, mang mũ bảo hiểm phụ"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="form-label" htmlFor="ct-notes">Ghi chú (tùy chọn)</label>
+                <input id="ct-notes" name="notes" type="text"
+                  placeholder="Vd: Xe Wave xanh, có mũ bảo hiểm phụ..."
+                  className="form-input" />
               </div>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition disabled:opacity-50 text-base"
-          >
-            {loading ? 'Đang đăng chuyến đi...' : 'Đăng chuyến đi ngay'}
-          </button>
-        </form>
-      </div>
+          {/* ── Submit ── */}
+          <div className="p-5" style={{ background: 'var(--bg-subtle)' }}>
+            <button type="submit" disabled={loading} className="btn btn-primary w-full">
+              {loading ? 'Đang đăng chuyến...' : 'Đăng chuyến đi'}
+            </button>
+            <p className="text-xs text-center mt-3" style={{ color: 'var(--text-muted)' }}>
+              Chuyến đi sẽ hiển thị công khai với sinh viên cùng tuyến đường
+            </p>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

@@ -62,118 +62,115 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-4xl">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
-        <Link href="/trips" className="hover:text-blue-500 transition">← Danh sách chuyến đi</Link>
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        <Link href="/trips" className="hover:text-blue-600 font-medium transition">← Danh sách chuyến đi</Link>
         <span>/</span>
         <span>Chi tiết chuyến #{trip.id.slice(0, 8)}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Trip Info (2 cols) */}
+        {/* Left Column: Trip Info */}
         <div className="md:col-span-2 space-y-6">
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-sm space-y-6">
-            {/* Status & Badge Header */}
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-zinc-800">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+          <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-6">
+            {/* Status Header */}
+            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
                 {trip.status === 'OPEN' && '🟢 Đang tìm hành khách'}
-                {trip.status === 'REQUESTED' && '🟡 Đã có người đăng ký'}
-                {trip.status === 'ACCEPTED' && '✅ Đã chốt chuyến'}
+                {trip.status === 'REQUESTED' && '🟡 Đã có người yêu cầu'}
+                {trip.status === 'ACCEPTED' && '✅ Đã chốt người đi cùng'}
                 {trip.status === 'COMPLETED' && '🎉 Đã hoàn thành'}
                 {trip.status === 'CANCELLED' && '🔴 Đã hủy'}
               </span>
 
-              <span className="text-xs text-slate-400">Ngày đăng: {new Date(trip.created_at).toLocaleDateString('vi-VN')}</span>
+              <span className="text-xs text-gray-400">Ngày đăng: {new Date(trip.created_at).toLocaleDateString('vi-VN')}</span>
             </div>
 
             {/* Route Details */}
             <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-lg border border-blue-200/50">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base flex-shrink-0">
                   📍
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Điểm đón KTX</span>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{trip.pickup_point}</h3>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400">Tòa {trip.pickup_building} • {trip.pickup_area === 'KHU_A' ? 'Ký túc xá Khu A' : 'Ký túc xá Khu B'}</p>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Điểm xuất phát</span>
+                  <h3 className="text-base font-bold text-gray-900">{trip.pickup_point}</h3>
+                  <p className="text-xs text-gray-500">Tòa {trip.pickup_building} • {trip.pickup_area === 'KHU_A' ? 'Ký túc xá Khu A' : 'Ký túc xá Khu B'}</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-200/50">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-base flex-shrink-0">
                   🏫
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Trường đại học đến</span>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{trip.destination_university}</h3>
-                  {trip.destination_campus && <p className="text-xs text-slate-500 dark:text-zinc-400">{trip.destination_campus}</p>}
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Điểm đến (Trường đại học)</span>
+                  <h3 className="text-base font-bold text-gray-900">{trip.destination_university}</h3>
+                  {trip.destination_campus && <p className="text-xs text-gray-500">{trip.destination_campus}</p>}
                 </div>
               </div>
             </div>
 
-            {/* Time & Price Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 dark:bg-zinc-800/50 rounded-2xl text-xs">
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-xl text-xs">
               <div>
-                <span className="text-slate-400 block mb-0.5">🗓️ Ngày đi</span>
-                <span className="font-bold text-slate-900 dark:text-white text-sm">{trip.date}</span>
+                <span className="text-gray-500 block mb-0.5">🗓️ Ngày đi</span>
+                <span className="font-bold text-gray-900 text-sm">{trip.date}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">⏰ Giờ đón</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">{trip.pickup_time}</span>
+                <span className="text-gray-500 block mb-0.5">⏰ Giờ đón</span>
+                <span className="font-bold text-blue-600 text-sm">{trip.pickup_time}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">💵 Khoản đóng góp</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">{formatVND(trip.suggested_price)}</span>
+                <span className="text-gray-500 block mb-0.5">💵 Chi phí đóng góp</span>
+                <span className="font-bold text-emerald-600 text-sm">{formatVND(trip.suggested_price)}</span>
               </div>
             </div>
 
             {trip.notes && (
-              <div className="p-3.5 bg-slate-50 dark:bg-zinc-800/40 rounded-xl text-xs text-slate-600 dark:text-zinc-400">
-                💬 <strong>Ghi chú từ tài xế:</strong> {trip.notes}
+              <div className="p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl text-xs text-gray-700">
+                💬 <strong>Ghi chú:</strong> {trip.notes}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Column: Driver Card & Request Form (1 col) */}
+        {/* Right Column: Driver Card & Request Form */}
         <div className="space-y-6">
-          {/* Driver Card */}
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Thông tin Tài xế KTX</h3>
+          <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Thông tin Tài xế</h3>
 
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-extrabold text-lg shadow">
-                {driver?.full_name?.slice(0, 1) || 'T'}
+              <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">
+                {driver?.full_name?.slice(0, 1) || 'S'}
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm">{driver?.full_name}</h4>
-                  {driver?.dorm_card_verified === 'VERIFIED' && <span title="Đã xác minh thẻ KTX">✅</span>}
+                  <h4 className="font-bold text-gray-900 text-sm">{driver?.full_name}</h4>
+                  {driver?.dorm_card_verified === 'VERIFIED' && (
+                    <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                      ✓ Đã xác minh
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">{driver?.university}</p>
+                <p className="text-xs text-gray-500">{driver?.university}</p>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 text-xs space-y-2 text-slate-600 dark:text-zinc-400">
+            <div className="pt-3 border-t border-gray-100 text-xs space-y-2 text-gray-600">
               <div className="flex justify-between">
-                <span>Điểm uy tín:</span>
-                <span className="font-bold text-amber-500">⭐ {driver?.rating?.toFixed(1) || '5.0'} / 5.0</span>
+                <span>Đánh giá:</span>
+                <span className="font-bold text-amber-600">⭐ {driver?.rating?.toFixed(1) || '5.0'} / 5.0</span>
               </div>
               <div className="flex justify-between">
-                <span>Số chuyến đã hoàn thành:</span>
-                <span className="font-bold text-slate-900 dark:text-white">{driver?.completed_trip_count || 0} chuyến</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Trạng thái Thẻ KTX:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  {driver?.dorm_card_verified === 'VERIFIED' ? 'Đã xác minh' : 'Chưa xác minh'}
-                </span>
+                <span>Số chuyến đã đi:</span>
+                <span className="font-bold text-gray-900">{driver?.completed_trip_count || 0} chuyến</span>
               </div>
             </div>
           </div>
 
-          {/* Request Form or Driver Controls */}
+          {/* Request Form or Driver Info */}
           <TripRequestForm
             tripId={trip.id}
             defaultPickupTime={trip.pickup_time}

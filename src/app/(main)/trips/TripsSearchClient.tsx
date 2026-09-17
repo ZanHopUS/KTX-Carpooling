@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Trip, UserProfile } from '@/types/database';
 import { rankTrips, MatchResult, MatchingCriteria } from '@/lib/matching';
-import { DORM_AREAS, UNIVERSITIES, PRICING_CONFIG } from '@/utils/constants';
+import { DORM_AREAS, UNIVERSITIES } from '@/utils/constants';
 import { formatVND } from '@/lib/pricing';
 
 interface TripsSearchClientProps {
@@ -19,9 +19,7 @@ export default function TripsSearchClient({ initialTrips, currentUserProfile }: 
   const [pickupTime, setPickupTime] = useState<string>('07:00');
   const [university, setUniversity] = useState<string>(currentUserProfile?.university || 'HCMUS');
   const [dormArea, setDormArea] = useState<string>(currentUserProfile?.dorm_area || 'KHU_B');
-  const [aiQuery, setAiQuery] = useState<string>('');
-  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
-  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   // Perform Matching Calculation
   const criteria: MatchingCriteria = {
@@ -33,136 +31,90 @@ export default function TripsSearchClient({ initialTrips, currentUserProfile }: 
 
   const rankedResults: MatchResult[] = rankTrips(initialTrips, criteria);
 
-  // Handle AI Search Query
-  const handleAiSearch = async () => {
-    if (!aiQuery.trim()) return;
-    setIsAiLoading(true);
-    setAiNotice(null);
-
-    try {
-      const res = await fetch('/api/ai/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: aiQuery }),
-      });
-
-      const data = await res.json();
-      if (data.success && data.intent) {
-        const { date: aiDate, pickup_time: aiTime, destination_school: aiUni } = data.intent;
-
-        if (aiDate) setDate(aiDate);
-        if (aiTime) setPickupTime(aiTime);
-        if (aiUni) setUniversity(aiUni);
-
-        setAiNotice(`✨ AI đã trích xuất: ${aiUni ? `Trường ${aiUni}` : ''} ${aiTime ? `| Giờ đón ${aiTime}` : ''} ${aiDate ? `| Ngày ${aiDate}` : ''}`);
-      } else {
-        setAiNotice('⚠️ Không thể phân tích câu tìm kiếm. Vui lòng thử diễn đạt lại.');
-      }
-    } catch (err) {
-      console.error('AI Search Error:', err);
-      setAiNotice('⚠️ Lỗi kết nối AI server.');
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
+  // Optional keyword search filter
+  const filteredResults = rankedResults.filter(({ trip }) => {
+    if (!searchKeyword.trim()) return true;
+    const kw = searchKeyword.toLowerCase();
+    return (
+      trip.pickup_point.toLowerCase().includes(kw) ||
+      trip.destination_university.toLowerCase().includes(kw) ||
+      trip.driver?.full_name?.toLowerCase().includes(kw)
+    );
+  });
 
   return (
-    <div className="space-y-8">
-      {/* Hero AI Search Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 p-6 md:p-8 text-white shadow-2xl border border-blue-800/40">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 space-y-4 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold border border-blue-400/30">
-            <span>✨ AI Natural Search Assistant</span>
-          </div>
-
-          <h2 className="text-xl md:text-2xl font-black tracking-tight">
-            Tìm chuyến xe máy thông minh bằng ngôn ngữ tự nhiên
-          </h2>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={aiQuery}
-              onChange={(e) => setAiQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAiSearch()}
-              placeholder='Ví dụ: "Mai mình học tiết 1 ở HCMUS, tìm chuyến ở B2 lúc 6 rưỡi"'
-              className="flex-1 px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner"
-            />
-            <button
-              onClick={handleAiSearch}
-              disabled={isAiLoading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap"
-            >
-              {isAiLoading ? 'Đang phân tích...' : '🤖 Phân tích AI'}
-            </button>
-          </div>
-
-          {aiNotice && (
-            <p className="text-xs font-medium text-blue-300 bg-blue-900/40 px-3 py-1.5 rounded-lg inline-block border border-blue-700/40">
-              {aiNotice}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Manual Filter Controls */}
-      <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm space-y-4">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
-          ⚙️ Bộ lọc tìm kiếm chi tiết
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
-              📅 Ngày đi
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tìm chuyến xe đi học</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Danh sách các chuyến xe máy ghép cùng tuyến đường từ KTX Khu A &amp; Khu B
+            </p>
+          </div>
+          <Link
+            href="/trips/create"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition shadow-sm self-start md:self-auto"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Đăng chuyến xe</span>
+          </Link>
+        </div>
+
+        {/* Search & Filters Form */}
+        <div className="pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+              Ngày đi
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
-              ⏰ Giờ đón mong muốn (±5 phút)
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+              Khung giờ đón
             </label>
             <input
               type="time"
               value={pickupTime}
               onChange={(e) => setPickupTime(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
-              🏢 Trường đến
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+              Trường học (Điểm đến)
             </label>
             <select
               value={university}
               onChange={(e) => setUniversity(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             >
               {UNIVERSITIES.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.id} - {u.name.split('(')[0]}
+                  {u.name}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
-              🏘️ Khu vực KTX
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+              Khu KTX (Điểm xuất phát)
             </label>
             <select
               value={dormArea}
               onChange={(e) => setDormArea(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             >
               {DORM_AREAS.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -174,123 +126,121 @@ export default function TripsSearchClient({ initialTrips, currentUserProfile }: 
         </div>
       </div>
 
-      {/* Results Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            Danh sách chuyến đi khớp thuật toán ({rankedResults.length})
-          </h3>
-          <span className="text-xs text-slate-500 dark:text-zinc-400">
-            Ưu tiên cùng trường (+40đ) • Lệch giờ ≤ 5 phút
-          </span>
-        </div>
+      {/* Results Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-gray-900">
+          Chuyến đi phù hợp ({filteredResults.length})
+        </h2>
+        <span className="text-xs text-gray-500">
+          Được sắp xếp theo mức độ phù hợp tuyến đường &amp; thời gian
+        </span>
+      </div>
 
-        {rankedResults.length === 0 ? (
-          <div className="p-12 text-center bg-slate-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-slate-300 dark:border-zinc-800 space-y-3">
-            <div className="text-4xl">🛵</div>
-            <h4 className="text-base font-bold text-slate-700 dark:text-zinc-300">
-              Chưa có chuyến đi nào phù hợp với bộ lọc hiện tại
-            </h4>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Hãy thử thay đổi khung giờ đón hoặc đăng chuyến mới nếu bạn có xe máy!
-            </p>
+      {/* Results List */}
+      {filteredResults.length === 0 ? (
+        <div className="bg-white rounded-2xl p-12 text-center border border-gray-200 space-y-3">
+          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-xl font-bold">
+            🛵
+          </div>
+          <h3 className="text-base font-bold text-gray-900">
+            Chưa tìm thấy chuyến đi phù hợp
+          </h3>
+          <p className="text-sm text-gray-500 max-w-md mx-auto">
+            Hiện chưa có chuyến xe nào ghép đúng tiêu chí bạn chọn. Bạn hãy thử chọn khung giờ khác hoặc tự đăng chuyến!
+          </p>
+          <div className="pt-2">
             <Link
               href="/trips/create"
-              className="inline-block mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl transition shadow-sm"
             >
-              ➕ Đăng chuyến xe máy ngay
+              Đăng chuyến xe ngay
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {rankedResults.map(({ trip, match_score, breakdown }) => (
-              <div
-                key={trip.id}
-                className="group relative p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 hover:border-blue-500/50 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4"
-              >
-                {/* Header: Driver info & Match Score Badge */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow">
-                      {trip.driver?.full_name?.slice(0, 1) || 'T'}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-slate-900 dark:text-white text-sm">
-                          {trip.driver?.full_name || 'Tài xế KTX'}
-                        </span>
-                        {trip.driver?.dorm_card_verified === 'VERIFIED' && (
-                          <span title="Đã xác minh thẻ KTX" className="text-xs">
-                            ✅
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-slate-500 dark:text-zinc-400">
-                        ⭐ {trip.driver?.rating?.toFixed(1) || '5.0'} • {trip.driver?.completed_trip_count || 0} chuyến thành công
-                      </span>
-                    </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredResults.map(({ trip, match_score, breakdown }) => (
+            <div
+              key={trip.id}
+              className="bg-white rounded-2xl border border-gray-200 hover:border-blue-300 p-5 shadow-sm transition flex flex-col justify-between space-y-4"
+            >
+              {/* Top: Driver info */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+                    {trip.driver?.full_name?.slice(0, 1) || 'S'}
                   </div>
-
-                  <div className="flex flex-col items-end">
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs border border-emerald-300/40">
-                      🎯 Score: {match_score}đ
-                    </span>
-                  </div>
-                </div>
-
-                {/* Score breakdown tags */}
-                <div className="flex flex-wrap gap-1.5 text-[11px] font-medium">
-                  {breakdown.school_score > 0 && (
-                    <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-                      🏫 Cùng trường (+40)
-                    </span>
-                  )}
-                  {breakdown.time_score > 0 && (
-                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900">
-                      ⏰ Khớp giờ đón (+{breakdown.time_score})
-                    </span>
-                  )}
-                  {breakdown.reputation_score > 0 && (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900">
-                      ⭐ Tài xế uy tín (+10)
-                    </span>
-                  )}
-                </div>
-
-                {/* Route & Timing details */}
-                <div className="p-3 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-slate-700 dark:text-zinc-300">
-                    <span>📍 <strong>Điểm đón:</strong> {trip.pickup_point} ({trip.pickup_building})</span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">🕒 {trip.pickup_time}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-700 dark:text-zinc-300">
-                    <span>🏫 <strong>Điểm đến:</strong> {trip.destination_university} {trip.destination_campus ? `(${trip.destination_campus})` : ''}</span>
-                    <span>🗓️ {trip.date}</span>
-                  </div>
-                </div>
-
-                {/* Pricing & Action */}
-                <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex justify-between items-center">
                   <div>
-                    <span className="text-[11px] text-slate-400 block">Đóng góp chi phí:</span>
-                    <span className="text-base font-extrabold text-blue-600 dark:text-blue-400">
-                      {formatVND(trip.suggested_price)}
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-gray-900 text-sm">
+                        {trip.driver?.full_name || 'Sinh viên KTX'}
+                      </span>
+                      {trip.driver?.dorm_card_verified === 'VERIFIED' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+                          ✓ Đã xác minh
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      ⭐ {trip.driver?.rating?.toFixed(1) || '5.0'} • {trip.driver?.completed_trip_count || 0} chuyến đã đi
                     </span>
-                    <span className="text-[11px] text-slate-500 ml-1">({trip.distance_km} km)</span>
                   </div>
+                </div>
 
-                  <Link
-                    href={`/trips/${trip.id}`}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow transition hover:scale-105"
-                  >
-                    Xem chi tiết & Gửi yêu cầu →
-                  </Link>
+                <div className="text-right">
+                  <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+                    Độ khớp {match_score}%
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+              {/* Match Criteria Badges */}
+              <div className="flex flex-wrap gap-1.5 text-xs">
+                {breakdown.school_score > 0 && (
+                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-medium">
+                    🏫 Cùng trường
+                  </span>
+                )}
+                {breakdown.time_score > 0 && (
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-medium">
+                    ⏰ Khớp giờ đi
+                  </span>
+                )}
+              </div>
+
+              {/* Route details */}
+              <div className="p-3 bg-gray-50 rounded-xl space-y-2 text-xs">
+                <div className="flex justify-between items-center text-gray-700">
+                  <span>📍 <strong>Đón:</strong> {trip.pickup_point} ({trip.pickup_building})</span>
+                  <span className="font-semibold text-blue-600">🕒 {trip.pickup_time}</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-700">
+                  <span>🏫 <strong>Đến:</strong> {trip.destination_university} {trip.destination_campus ? `(${trip.destination_campus})` : ''}</span>
+                  <span>🗓️ {trip.date}</span>
+                </div>
+              </div>
+
+              {/* Bottom bar */}
+              <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] text-gray-500 block">Đóng góp chi phí:</span>
+                  <span className="text-base font-bold text-blue-600">
+                    {formatVND(trip.suggested_price)}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-1">({trip.distance_km} km)</span>
+                </div>
+
+                <Link
+                  href={`/trips/${trip.id}`}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition"
+                >
+                  Xem chi tiết
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

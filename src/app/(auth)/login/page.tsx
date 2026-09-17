@@ -23,29 +23,38 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-slate-100">
-      <div className="w-full max-w-md p-8 bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-gray-900">
+      <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600/20 text-blue-400 border border-blue-500/30 font-bold text-2xl mb-1">
-            🛵
-          </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Đăng nhập KTX Carpooling</h1>
-          <p className="text-sm text-slate-400">
-            Ứng dụng ghép chuyến xe máy dành riêng cho sinh viên KTX
+          <Link href="/" className="inline-flex items-center gap-2 mb-2 group">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              K
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-gray-900 leading-tight">KTX Carpooling</div>
+              <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">ĐHQG-HCM</div>
+            </div>
+          </Link>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Đăng nhập tài khoản</h1>
+          <p className="text-sm text-gray-500">
+            Kết nối sinh viên KTX Khu A &amp; Khu B đi học cùng tuyến đường
           </p>
         </div>
 
         {errorMsg && (
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-medium">
-            ⚠️ {errorMsg}
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-2">
+            <svg className="w-5 h-5 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{errorMsg}</span>
           </div>
         )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               Email sinh viên
             </label>
             <input
@@ -53,37 +62,49 @@ export default function LoginPage() {
               type="email"
               required
               placeholder="sinhvien@student.hcmus.edu.vn"
-              className="w-full px-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Mật khẩu
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Mật khẩu
+              </label>
+            </div>
             <input
               name="password"
               type="password"
               required
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition disabled:opacity-50 text-sm"
+            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm transition disabled:opacity-50 text-sm flex items-center justify-center gap-2"
           >
-            {loading ? 'Đang xác thực...' : 'Đăng nhập vào Hệ thống'}
+            {loading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Đang đăng nhập...</span>
+              </>
+            ) : (
+              'Đăng nhập'
+            )}
           </button>
         </form>
 
         {/* Footer Link */}
-        <div className="text-center text-xs text-slate-400 pt-3 border-t border-slate-800/60">
+        <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-100">
           Chưa có tài khoản?{' '}
-          <Link href="/register" className="font-semibold text-blue-400 hover:underline">
-            Tạo tài khoản ngay
+          <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+            Đăng ký tài khoản sinh viên
           </Link>
         </div>
       </div>
