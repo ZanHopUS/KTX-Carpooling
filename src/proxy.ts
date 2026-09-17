@@ -32,6 +32,12 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+  const isServerAction = request.headers.has('next-action')
+
+  // Don't interfere with Next.js Server Action POST requests
+  if (isServerAction) {
+    return supabaseResponse
+  }
 
   // Protected routes requiring authentication
   const protectedRoutes = ['/dashboard', '/trips/create', '/requests', '/profile']
@@ -43,8 +49,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated user away from auth pages
-  if (user && (pathname === '/login' || pathname === '/register')) {
+  // Redirect authenticated user away from auth pages (GET only)
+  if (user && request.method === 'GET' && (pathname === '/login' || pathname === '/register')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

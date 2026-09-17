@@ -47,8 +47,8 @@ export function filterCompatibleTrips(trips: Trip[], criteria: MatchingCriteria)
     // 3. Driver has available seats
     if (trip.available_seats <= 0) return false;
 
-    // 4. Trip status is OPEN
-    if (trip.status !== 'OPEN') return false;
+    // 4. Trip status is OPEN (case-insensitive, handles both 'open' and 'OPEN' in DB)
+    if (trip.status?.toUpperCase() !== 'OPEN') return false;
 
     // 5. Compatible destination university
     if (

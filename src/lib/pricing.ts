@@ -83,7 +83,7 @@ export async function fetchLiveMotorcycleDistance(
 
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${pickup.lng},${pickup.lat};${dest.lng},${dest.lat}?overview=false`;
-    const res = await fetch(url, { cache: 'force-cache' });
+    const res = await fetch(url);
     if (!res.ok) throw new Error('OSRM API HTTP Error');
 
     const data = await res.json();

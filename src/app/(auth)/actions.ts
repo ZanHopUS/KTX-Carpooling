@@ -77,6 +77,15 @@ export async function registerAction(formData: FormData) {
   });
 
   if (authError || !authData.user) {
+    console.error('Supabase Auth SignUp Error:', authError);
+
+    if (authError?.message?.includes('Error sending confirmation email')) {
+      return {
+        error:
+          'Lỗi từ máy chủ Email của Supabase: Không thể gửi email xác minh đến hòm thư sinh viên (do giới hạn SMTP mặc định của Supabase). Để giải quyết: Truy cập Supabase Dashboard -> Authentication -> Providers -> Email -> TẮT mục "Confirm email" (Xác nhận email), sau đó bấm Đăng ký lại!',
+      };
+    }
+
     return { error: authError?.message || 'Đăng ký thất bại. Vui lòng thử lại.' };
   }
 
@@ -109,6 +118,15 @@ export async function registerAction(formData: FormData) {
     await supabase.from('profiles').upsert(profilePayload);
   } catch (err) {
     console.log('Profile creation handled by trigger:', err);
+  }
+
+  // If user is already logged in (Confirm Email is disabled in Supabase),
+  // redirect directly to dashboard instead of showing OTP modal.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    // Mark email as verified since no OTP is needed
+    await supabase.from('profiles').update({ email_verified: true }).eq('id', authData.user.id);
+    redirect('/dashboard');
   }
 
   return { success: true, requireOtp: true, email };
@@ -145,7 +163,8 @@ export async function verifyOtpAction(email: string, token: string) {
     await supabase.from('profiles').update({ email_verified: true }).eq('id', user.id);
   }
 
-  return { success: true };
+  // Use server-side redirect to avoid client router.push issues
+  redirect('/dashboard');
 }
 
 export async function resendOtpAction(email: string) {

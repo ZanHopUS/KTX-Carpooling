@@ -2,12 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { DORM_AREAS, DORM_BUILDINGS, UNIVERSITIES } from '@/utils/constants';
 import { registerAction, verifyOtpAction, resendOtpAction } from '../actions';
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [selectedArea, setSelectedArea] = useState<keyof typeof DORM_BUILDINGS>('KHU_B');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
@@ -51,16 +49,21 @@ export default function RegisterPage() {
     setErrorMsg(null);
     setOtpLoading(true);
 
-    const result = await verifyOtpAction(registeredEmail, otpToken);
-    setOtpLoading(false);
-
-    if (result?.error) {
-      setErrorMsg(result.error);
-    } else {
-      setInfoMsg('Xác minh Email sinh viên thành công! Đang chuyển hướng...');
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1000);
+    try {
+      // verifyOtpAction now does server-side redirect('/dashboard') on success
+      // This call will throw a redirect error that Next.js handles automatically
+      await verifyOtpAction(registeredEmail, otpToken);
+      // If we reach here, something returned (error case)
+      setOtpLoading(false);
+    } catch (err: any) {
+      // Next.js redirect() throws a special error - this is expected on success
+      // If it's a real error, show it
+      if (err?.digest?.startsWith('NEXT_REDIRECT')) {
+        // Redirect in progress - do nothing, Next.js handles it
+        return;
+      }
+      setOtpLoading(false);
+      setErrorMsg('Đã xảy ra lỗi. Vui lòng thử lại.');
     }
   }
 
