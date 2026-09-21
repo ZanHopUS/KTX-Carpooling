@@ -121,8 +121,29 @@ export async function rejectTripRequestAction(requestId: string, tripId: string)
 
   if (!user) return { error: 'Bạn chưa đăng nhập.' };
 
-  // Reject request
-  await supabase.from('trip_requests').update({ status: 'REJECTED' }).eq('id', requestId);
+  // Fetch request and verify it exists and belongs to tripId
+  const { data: request } = await supabase
+    .from('trip_requests')
+    .select('trip_id')
+    .eq('id', requestId)
+    .single();
+
+  if (!request || request.trip_id !== tripId) {
+    return { error: 'Bạn không có quyền thực hiện thao tác này.' };
+  }
+
+  // Verify user is driver of trip
+  const { data: trip } = await supabase.from('trips').select('driver_id').eq('id', tripId).single();
+  if (!trip || trip.driver_id !== user.id) {
+    return { error: 'Bạn không có quyền thực hiện thao tác này.' };
+  }
+
+  // Reject request (scoped to both id and trip_id)
+  await supabase
+    .from('trip_requests')
+    .update({ status: 'REJECTED' })
+    .eq('id', requestId)
+    .eq('trip_id', tripId);
 
   // Check remaining PENDING requests for trip
   const { data: remaining } = await supabase

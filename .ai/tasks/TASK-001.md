@@ -1,11 +1,11 @@
 # TASK-001 — Bịt lỗ hổng uỷ quyền trong Server Action của chuyến đi & chat
 
-- **TRẠNG THÁI:** 🟢 `READY` — **CHƯA ĐƯỢC THỰC THI** (chờ PO ra lệnh)
+- **TRẠNG THÁI:** ✅ `DONE` — **static verification PASS, PO phê duyệt chốt theo static (2026-09-21). Runtime AC-01…AC-06 defer sang EPIC-03** (code ↔ DB lệch toàn bộ thiết kế — fixture không tạo được; AC-04 thêm phụ thuộc TASK-002). Xem `VERIFICATION-REPORT-TASK-001.md` §9 và mục 20 dưới đây. Re-verify runtime là điều kiện hoàn thành của EPIC-03.
 - **EPIC:** EPIC-01 — Security & Authorization
 - **Mức ưu tiên:** 1 (Bảo mật / Uỷ quyền)
 - **Mức rủi ro:** 🔴 Cao nếu không sửa — 🟢 Thấp khi sửa (thay đổi nhỏ, cục bộ)
 - **Người tạo:** Qoder (Orchestrator) — ngày 2026-09-20
-- **Người thực thi:** _(chưa chỉ định — chờ PO)_
+- **Người thực thi:** Antigravity (Execution Agent)
 - **Người verify:** Qoder (theo `verification-protocol.md`)
 
 ---
@@ -256,6 +256,38 @@ và phải ghi rõ lý do — **không được** đánh PASS khi chưa thực c
 
 Theo `escalation-protocol.md`: escalation phải nêu đủ 4 yếu tố — **bối cảnh, bằng chứng, tác động,
 đề xuất**. Trong lúc chờ PO: **không tự quyết định**, **không mở rộng phạm vi**.
+
+---
+
+## 19. KẾT QUẢ RE-VERIFY — BLOCKED (2026-09-20)
+
+**Lỗi đã FAIL trước đó:** Đã được khắc phục qua static verification. Hàm hiện lấy `trip_requests.trip_id`
+theo `requestId`, từ chối request không khớp `tripId`, kiểm tra driver sau đó và scope mutation theo cả
+`id` lẫn `trip_id`. Kịch bản tài xế chuyến A truyền request của chuyến B không thể đi đến mutation.
+
+**Lý do BLOCKED:** AC-01…AC-06 yêu cầu kiểm DB trước/sau cùng các tài khoản driver, accepted passenger
+và user không liên quan. Repository không có fixture/test integration, và chưa có môi trường Supabase
+kiểm thử được PO phê duyệt. Theo §15, không được đánh PASS thay cho các kiểm chứng chưa thực hiện.
+
+**Cần Product Owner quyết định:** cung cấp môi trường DB kiểm thử cùng fixture/tài khoản, hoặc chấp thuận
+bằng văn bản static verification thay cho bằng chứng runtime. Không yêu cầu Antigravity sửa code thêm và
+không mở task mới.
+
+Xem đầy đủ bằng chứng tại `.ai/reports/VERIFICATION-REPORT-TASK-001.md`.
+
+---
+
+## 20. QUYẾT ĐỊNH CHỐT CỦA PO (2026-09-21)
+
+1. Static verification được phê duyệt thay cho bằng chứng runtime (đề xuất mục 2 trong §8 của
+   báo cáo verify). TASK-001 chuyển `DONE`.
+2. Runtime AC-01…AC-06: **KHÔNG KIỂM ĐƯỢC, defer** — lý do: fixture run bị chặn bởi code ↔ DB
+   lệch toàn bộ thiết kế (`trips` thật 27 cột normalized; 14/17 cột code insert không tồn tại —
+   `database-context.md` §16). Riêng AC-04 thêm phụ thuộc bảng `messages` (TASK-002).
+3. Việc đồng bộ code ↔ DB chuyển sang **EPIC-03** (mở rộng: "Data Integrity & Code ↔ DB
+   Alignment", gộp TASK-002). **Re-verify runtime cho 3 action của task này là điều kiện hoàn
+   thành của EPIC-03.**
+4. Chuỗi bằng chứng: `RUNTIME-LOG-TASK-001.md` §1–§8, `VERIFICATION-REPORT-TASK-001.md` §9.
 
 ---
 

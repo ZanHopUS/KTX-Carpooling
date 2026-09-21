@@ -12,7 +12,7 @@
 | Có file DDL chạy được trong repo? | **KHÔNG.** `supabase/schema.sql` chỉ là **comment**, không có câu lệnh SQL nào. |
 | Có migration? | **KHÔNG.** `supabase/migrations/` rỗng hoàn toàn (0 file). |
 | File migration được tham chiếu | `migrations/20260916_align_ktx_schema.sql` — **KHÔNG TỒN TẠI trong repo**. |
-| Trạng thái schema thật | **`UNKNOWN`** — không có đường truy cập project Supabase. |
+| Trạng thái schema thật | `trips` đã xác minh **`ACTUAL`** (§16 — lệch hoàn toàn với code, 3 thiết kế khác nhau); các bảng khác vẫn `UNKNOWN`. |
 | Rủi ro lớn nhất | Không thể tái lập môi trường; không thể review thay đổi schema; tài liệu và code mâu thuẫn về tên cột. |
 
 ---
@@ -225,7 +225,7 @@ Theo `docs/database/supabase-structure.md`:
 
 | # | Câu hỏi | Mức độ |
 |---|---|---|
-| D1 | Tên cột ngày đi thật: `date` hay `trip_date`? | 🔴 Chặn |
+| D1 | **ĐÃ GIẢI (2026-09-21): `trip_date`** — code dùng `date` là SAI (bằng chứng CSV của PO, §16) | ✅ Xong |
 | D2 | Cột trạng thái tài khoản: `status` hay `account_status`? | 🟠 Cao |
 | D3 | Enum lưu chữ HOA hay chữ thường? | 🔴 Chặn |
 | D4 | Bảng `ratings` có tồn tại không? Schema ra sao? | 🟠 Cao |
@@ -235,3 +235,97 @@ Theo `docs/database/supabase-structure.md`:
 | D8 | Cơ chế tạo tài khoản ADMIN? | 🟠 Cao |
 | D9 | Xử lý 2 bucket thẻ KTX (gộp về 1 bucket private)? | 🔴 Bảo mật |
 | D10 | Có áp dụng trạng thái `NEED_REVIEW` trong nghiệp vụ? | 🟡 Trung bình |
+
+---
+
+## 14. Xác nhận thực tế từ Product Owner (2026-09-21) — cập nhật nhãn `ACTUAL`
+
+Nguồn: PO kiểm tra Supabase Dashboard, trả lời checklist trong `.ai/reports/ENVIRONMENT-ASSESSMENT-TASK-001.md` mục 7.
+
+| Đối tượng | PO xác nhận | Nhãn mới | Ghi chú |
+|---|---|---|---|
+| Môi trường project | DEV — project tạo để phát triển, chưa đưa cho người dùng thật; Site URL `http://localhost:3000`, Redirect `http://localhost:3000/**` | `ACTUAL` | |
+| `auth.users` | 2 user: PO (email thật) + 1 admin | `ACTUAL` | Giải một phần D8: đã có sẵn tài khoản ADMIN (cách tạo không rõ) |
+| `profiles` | Tồn tại, 2 bản ghi (PO + admin) | `ACTUAL` (sự tồn tại) | Cột vẫn theo bảng §3 — chưa xác minh từng cột |
+| `ratings` | **TỒN TẠI** | `ACTUAL` (sự tồn tại) | Giải một phần D4 — schema cột vẫn `UNKNOWN` |
+| `messages` | **KHÔNG TỒN TẠI** | `ACTUAL` | Giải D5; chặn AC-04 TASK-001 + toàn bộ tính năng chat hiện hỏng trên DB này |
+| `routes`, `locations` | TỒN TẠI, chứa dữ liệu thật | `ACTUAL` (sự tồn tại) | Hai bảng KHÔNG có trong tài liệu — schema cột `UNKNOWN` |
+| `trips`, `trip_requests` | Chưa xác nhận | `UNKNOWN` | Cần PO kiểm tra Table Editor |
+| Bucket `dorm-cards` | Chưa có ảnh thật | `ACTUAL` | |
+
+---
+
+## 15. Phát hiện từ runtime verification (2026-09-21, sau khi PO duyệt fixture run)
+
+Nguồn: chạy app thật trên dev server (`npm run dev`) theo kế hoạch fixture đã PO duyệt
+("duyệt toàn bộ"). Chi tiết: `.ai/reports/RUNTIME-LOG-TASK-001.md`.
+
+| Đối tượng | Bằng chứng | Nhãn | Ghi chú |
+|---|---|---|---|
+| `trips` — sự tồn tại + đường đọc | Trang `/trips` load 200, query `select *` không lỗi; `/dashboard` đếm `count(trips)` = 0 | `ACTUAL` | Bảng **tồn tại**, đọc được, **đang trống** (0 bản ghi) |
+| `trips.available_seats` | `createTripAction` lỗi `PGRST204: "Could not find the 'available_seats' column of 'trips' in the schema cache"` (log dev server + alert UI) | `ACTUAL` | Cột **KHÔNG tồn tại** ⇒ tính năng "Đăng chuyến" **hỏng hoàn toàn** với mọi user |
+| `trips.date` | ~~SUY LUẬN MẠNH: cột `date` tồn tại~~ — **BỊ BÁC BỎ** bởi CSV cột thật của PO (§16): bảng có `trip_date`, KHÔNG có `date`. PGRST204 báo cột thiếu theo thứ tự **alphabet** của khóa payload (`available_seats` đứng đầu trong các khóa thiếu), không theo thứ tự khai báo — suy luận cũ từ thứ tự payload là sai | `ACTUAL` (bác bỏ) | Giải **D1**: tên cột thật là `trip_date` — tài liệu + `schema.sql` ĐÚNG, code dùng `date` là SAI |
+| `trip_requests` | Chưa có thao tác nào chạm tới (không tạo được trip) | `UNKNOWN` | Vẫn chờ kiểm chứng |
+| Đăng ký user (auth + `profiles`) | `registerAction` với email test `devtest.b@devtest.edu.vn` thành công: có user id, `identities: 1`, session cấp ngay, redirect `/dashboard`, profile đọc được (hiển thị tên) | `ACTUAL` | **"Confirm email" đang TẮT** trong project Supabase — signup được session ngay không cần OTP; insert `profiles` hoạt động |
+| Ràng buộc email | Email `devtest.edu.vn` (không có thật) vẫn qua được validate domain | `ACTUAL` | Như phân tích code: whitelist 14 domain + chấp nhận mọi đuôi `.edu.vn` |
+| Cột `trips` còn thiếu khác ngoài `available_seats`? | PO xuất CSV cột thật từ Dashboard (2026-09-21, xem §16): **14/17** cột code insert KHÔNG tồn tại trong bảng | `ACTUAL` | Đã đối chiếu xong — chi tiết §16 |
+
+**Hệ quả:** không thể tạo fixture trip qua app ⇒ toàn bộ 11 test case runtime của TASK-001
+bị chặn (mọi TC đều cần ít nhất 1 trip). Verification runtime tiếp tục **BLOCKED**.
+
+---
+
+## 16. Cột thật của `trips` — PO cung cấp CSV từ Supabase Dashboard (2026-09-21)
+
+Nguồn: PO chạy query `information_schema.columns` (bảng `public.trips`) và xuất CSV
+(`Supabase Snippet Untitled query.csv`). Bằng chứng trực tiếp ⇒ nhãn `ACTUAL`.
+
+### 16.1 Danh sách 27 cột thật
+
+| Cột | Kiểu | Cột | Kiểu |
+|---|---|---|---|
+| `id` | uuid | `cancelled_by` | uuid |
+| `driver_id` | uuid | `cancelled_at` | timestamptz |
+| `vehicle_id` | uuid | `cancellation_reason` | **enum** |
+| `route_id` | uuid | `cancellation_note` | text |
+| `pickup_location_id` | uuid | `expired_at` | timestamptz |
+| `trip_date` | date | `started_at` | timestamptz |
+| `departure_time` | time | `completed_at` | timestamptz |
+| `class_start_time` | time | `created_at` | timestamptz |
+| `class_end_time` | time | `updated_at` | timestamptz |
+| `distance_meters_snapshot` | integer | `status` | **enum** |
+| `duration_seconds_snapshot` | integer | `accepted_passenger_id` | uuid |
+| `price_snapshot` | integer | `accepted_request_id` | uuid |
+| `currency` | text | | |
+| `note` | text | | |
+
+### 16.2 Đối chiếu với 17 cột code insert (`createTripAction`)
+
+| Trạng thái | Cột |
+|---|---|
+| ✅ Tồn tại — **3/17** | `driver_id`, `status`, `created_at` |
+| ❌ KHÔNG tồn tại — **14/17** | `date`, `pickup_time`, `pickup_area`, `pickup_building`, `pickup_point`, `destination_university`, `destination_campus`, `destination_building`, `distance_km`, `suggested_price`, `available_seats`, `payment_method`, `notes` (+ `id` tự sinh) |
+| Bảng có mà code **không dùng** — 22 cột | `vehicle_id`, `route_id`, `pickup_location_id`, `trip_date`, `departure_time`, `class_start_time`, `class_end_time`, `distance_meters_snapshot`, `duration_seconds_snapshot`, `price_snapshot`, `currency`, `note`, `accepted_passenger_id`, `accepted_request_id`, `cancelled_by`, `cancelled_at`, `cancellation_reason`, `cancellation_note`, `expired_at`, `started_at`, `completed_at`, `updated_at` |
+
+### 16.3 Kết luận
+
+1. **`trips` thật là một thiết kế HOÀN TOÀN KHÁC** (normalized: FK `vehicle_id`/`route_id`/`pickup_location_id`
+   trỏ về `vehicles`/`routes`/`locations`; cột snapshot khoảng cách/thời gian/giá; cột lifecycle). Khớp với việc
+   PO xác nhận `routes` + `locations` có dữ liệu thật (§14).
+2. **Không có dòng code nào dùng thiết kế thật.** Grep toàn `src/` cho
+   `route_id|pickup_location_id|distance_meters_snapshot|duration_seconds_snapshot|class_start_time|accepted_passenger_id|departure_time|price_snapshot`
+   → chỉ khớp duy nhất `class_start_time?` (optional) trong `types/database.ts:40`. Tính năng OSRM
+   (`lib/pricing.ts`) trả về `distance_km` — theo thiết kế của CODE, không phải `distance_meters_snapshot`.
+3. **Ba thiết kế lệch nhau**: (a) DB thật — normalized; (b) code — flat 17 cột; (c) `schema.sql` doc — mô tả
+   trạng thái SAU migration `20260916_align_ktx_schema.sql` **chưa từng chạy** (file không có trong repo,
+   `supabase/migrations/` trống). Doc chỉ đúng 1 điểm với DB thật: cột `trip_date`.
+4. **Đề xuất `add column if not exists` 15 cột trong RUNTIME-LOG §4 đã THU HỒI** — nếu áp dụng sẽ tạo bảng lai,
+   có thể vẫn fail do ràng buộc NOT NULL của thiết kế thật (CSV không kèm `is_nullable` nên chưa biết), và làm
+   bẩn bảng đã chứa dữ liệu thật qua `routes`/`locations`.
+5. `trips.status` + `cancellation_reason` là **enum** — giá trị (HOA/thường) vẫn `UNKNOWN` (**D3 chưa giải**);
+   code ghi `'OPEN'`, `'COMPLETED'`… chữ HOA.
+6. **Luồng ghi trip qua app hỏng toàn bộ**: create fail (14 cột không tồn tại); update status phụ thuộc giá trị
+   enum; đường đọc `select *` vẫn hoạt động.
+
+**Hệ quả orchestration:** fixture run TASK-001 không thể tiếp tục qua UI. Đồng bộ code ↔ DB là quyết định
+kiến trúc thuộc PO, ngoài phạm vi TASK-001 (chi tiết: `.ai/reports/RUNTIME-LOG-TASK-001.md` §8).
