@@ -6,7 +6,7 @@
 | **Tên** | Security & Authorization Hardening |
 | **Ưu tiên** | 1 (theo constitution §8 — Security/Authorization) |
 | **Mức độ** | 🔴 Chặn — hệ thống không an toàn để dùng thật |
-| **Trạng thái** | `PROPOSED` |
+| **Trạng thái** | `IN_PROGRESS` — TASK-001 ✅ DONE theo static verification (PO phê duyệt 2026-09-21, quyết định A1); runtime AC-01…AC-06 defer sang EPIC-03; 4 task còn lại `PROPOSED` |
 | **Phụ thuộc** | Không (có thể bắt đầu ngay). Riêng task về quyền ADMIN cần Q6 (cơ chế tạo ADMIN). |
 
 ---
@@ -75,7 +75,7 @@
 
 | Task | Tên | Trạng thái |
 |---|---|---|
-| **TASK-001** | Bịt lỗ hổng uỷ quyền trong server action chuyến đi & chat | 🟢 **READY** |
+| **TASK-001** | Bịt lỗ hổng uỷ quyền trong server action chuyến đi & chat | ✅ **DONE** (static) — PO phê duyệt chốt theo static 2026-09-21 (A1); runtime AC-01…AC-06 defer sang EPIC-03 (code ↔ DB lệch toàn bộ thiết kế — xem `RUNTIME-LOG-TASK-001.md` §8) |
 | TASK-00x *(đề xuất)* | Bảo vệ khu vực `/admin` bằng kiểm tra vai trò ADMIN | `PROPOSED` — chờ Q6 |
 | TASK-00x *(đề xuất)* | Xác thực chữ ký webhook Messenger | `PROPOSED` |
 | TASK-00x *(đề xuất)* | Bảo vệ & giới hạn tần suất endpoint AI; đưa API key ra khỏi URL | `PROPOSED` |
@@ -89,3 +89,9 @@
 - [ ] Không còn server action nào chỉ kiểm tra `if (!user)`
 - [ ] `/admin` không thể truy cập bởi người không phải ADMIN (đã kiểm thử tiêu cực)
 - [ ] `.ai/project-state.md` cập nhật: 0 lỗ hổng uỷ quyền
+
+## 8. Cập nhật trạng thái 2026-09-21
+
+- TASK-001 đã `DONE` theo static verification được PO chấp thuận; runtime AC-01…AC-06 vẫn defer sang EPIC-03.
+- Runtime không thể xác minh chat vì DB DEV không có bảng `messages`; không được coi static PASS là runtime PASS.
+- RLS thật vẫn `UNKNOWN`; việc bảng `messages` vắng mặt không làm mất yêu cầu kiểm tra authorization ở server action.

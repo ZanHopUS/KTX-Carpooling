@@ -77,3 +77,9 @@ Làm cho luồng đăng ký → xác minh email → xác minh thẻ KTX → sử
 - [ ] Đăng ký → nhận OTP → xác minh → vào hệ thống: chạy được trên local **và** môi trường deploy
 - [ ] Không còn route nào trong luồng onboarding trả 404/500
 - [ ] Có ít nhất 1 tài khoản ADMIN tạo được theo quy trình đã tài liệu hoá
+
+## 8. Cập nhật trạng thái runtime 2026-09-21
+
+- Supabase DEV đang tắt confirm email: signup cấp session ngay và redirect `/dashboard`; OTP vẫn là flow được code thiết kế nhưng chưa phải ràng buộc thực tế của môi trường này.
+- API verification vẫn dùng sai bảng `users`; route này không được coi là hoạt động chỉ vì server action upload profile còn tồn tại.
+- Cần phân biệt hai vấn đề: callback email 404 là blocker riêng, còn OTP/signup behavior phụ thuộc cấu hình confirm email của Supabase.

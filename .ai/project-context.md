@@ -1,6 +1,6 @@
 # PROJECT CONTEXT — KTX Carpooling
 
-> Bối cảnh nghiệp vụ & phạm vi dự án. Nguồn: `docs/product/project-report.md`, `docs/product/project-guide.md`, `docs/database/current-data.md`, `src/utils/constants.ts`.
+> Bối cảnh nghiệp vụ & phạm vi dự án. Nguồn: `docs/product/project-report.md`, `docs/product/project-guide.md`, `docs/database/current-data.md`, `docs/database/supabase-structure.md`, `src/utils/constants.ts`. Trạng thái thực tế được tách riêng khỏi nghiệp vụ mục tiêu.
 
 ---
 
@@ -28,7 +28,9 @@
 - **Điểm đi**: KTX Khu A (Linh Trung, Thủ Đức) và KTX Khu B (Linh Trung, Thủ Đức).
   - `DORM_AREAS = [KHU_A, KHU_B]`
   - `DORM_BUILDINGS`: Khu A = A1–A5, Khu B = B1–B5 *(nguồn: `src/utils/constants.ts`)*
-- **Điểm đến**: 6 trường ĐH thành viên — HCMUS, HCMUT, UIT, USSH, IU, UEL (tất cả tại Linh Trung, Thủ Đức).
+- **Điểm đến lõi trong code/UI**: 6 trường — HCMUS, HCMUT, UIT, USSH, IU, UEL.
+- **Dataset locations/routes mở rộng**: còn có UEH, UEF, VGU, VLU, FPT, HUTECH, TDTU, NTTU và các trường/khu vực khác. Không được giả định dropdown hiện tại đã hỗ trợ toàn bộ dataset.
+- `locations` và `routes` đã được PO xác nhận tồn tại và có dữ liệu trên DB DEV; schema cột đầy đủ vẫn cần dump.
 
 ---
 
@@ -43,6 +45,8 @@
 - Số ghế mặc định = 1 (`readOnly` trong form).
 - Hệ thống tự tính **khoảng cách thực tế** → **giá gợi ý**.
 
+**Trạng thái thực tế:** code hiện gửi mô hình `trips` phẳng, trong khi DB DEV dùng schema normalized 27 cột (`trip_date`, `vehicle_id`, `route_id`, `pickup_location_id`, snapshot fields...). Vì vậy tính năng chưa hoạt động end-to-end và mọi thay đổi trip phải đi qua EPIC-03.
+
 ### 4.3 Hành khách tìm & gửi yêu cầu
 - Tìm theo trường/ngày, hệ thống **xếp hạng bằng điểm khớp** (0–100%).
 - Gửi yêu cầu → chuyến chuyển `REQUESTED`, chờ tài xế phản hồi.
@@ -54,8 +58,17 @@
 - Chỉ tài xế + hành khách đã `ACCEPTED` vào được phòng chat.
 - Nút nhanh: "đã đến điểm đón", "báo trễ 5 phút", "hoàn thành chuyến", "đánh giá".
 
+**Trạng thái thực tế:** bảng `messages` không tồn tại trên DB DEV; chat là code path chưa chạy được, không được mô tả như tính năng đang hoạt động.
+
 ### 4.6 Đánh giá
 - Sau chuyến, hai bên đánh giá nhau (1–5 sao + nhận xét). Điểm uy tín hiển thị trên hồ sơ.
+
+**Trạng thái thực tế:** bảng `ratings` tồn tại, nhưng schema cột/runtime chưa được dump; code dùng `stars` trong khi tài liệu mục tiêu dùng `score`.
+
+### 4.7 Auth runtime
+
+- Code thiết kế OTP và email confirmation.
+- Supabase DEV hiện tắt confirm email, nên signup cấp session ngay; OTP chưa phải hành vi bắt buộc của môi trường hiện tại.
 
 ---
 
@@ -111,6 +124,12 @@ giá = max(khoảng_cách_km × 2.000, 5.000)
 - Tích hợp Messenger thật (mới có webhook stub)
 - AI tìm kiếm ngôn ngữ tự nhiên (Gemini — chưa cấu hình API key)
 - Báo cáo vi phạm (có thiết kế UI/type, chưa có luồng hoàn chỉnh)
+
+### 6.1 Các phụ thuộc đã biết
+
+- Schema normalized của `trips` phải được chốt trước khi sửa matching, pricing snapshot hoặc tạo trip.
+- Chat phụ thuộc việc tạo bảng `messages` hoặc chọn thiết kế thay thế.
+- Dataset locations/routes rộng hơn các trường lõi mà code hiện đang khai báo.
 
 ---
 

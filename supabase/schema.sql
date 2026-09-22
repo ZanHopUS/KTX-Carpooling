@@ -25,5 +25,14 @@
 -- trip_requests
 --   requested_pickup_time, match_score, message, status
 
+-- messages (tạo bởi migration 20260921_create_messages.sql)
+--   id (uuid, PK), trip_id (FK -> trips.id ON DELETE CASCADE), sender_id (FK -> profiles.id)
+--   content (text, check non-empty), created_at (timestamptz)
+--   Index: (trip_id, created_at ASC)
+--   RLS:
+--     - SELECT: tài xế | hành khách ACCEPTED (canonical trips.accepted_passenger_id HOẶC trip_requests) | admin
+--     - INSERT: sender_id = auth.uid() AND (tài xế | hành khách ACCEPTED | admin)
+--     - UPDATE / DELETE: không cấp quyền (tin nhắn bất biến)
+
 -- RPC: accept_trip_request(uuid)
 -- Helpers: is_admin(), is_verified_user()

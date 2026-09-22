@@ -27,10 +27,10 @@ khi các lỗ hổng bảo mật (EPIC-01), blocker auth (EPIC-02) và tính to�
 
 | Vị trí | Nội dung | Ghi chú |
 |--------|----------|---------|
-| `src/utils/pricing.ts` | `PRICING_CONFIG` + `calculateSuggestedPrice()` | Dùng bởi form tạo chuyến |
-| `src/utils/matching.ts` | Thuật toán matching + scoring | Dùng bởi trang tìm chuyến |
+| `src/lib/pricing.ts` | `PRICING_CONFIG` + `calculateSuggestedPrice()` | Dùng bởi form tạo chuyến |
+| `src/lib/matching.ts` | Thuật toán matching + scoring | Dùng bởi trang tìm chuyến |
 | `src/utils/constants.ts` | `DORM_AREAS`, `DORM_BUILDINGS`, `UNIVERSITIES` | Nguồn sự thật cho dropdown |
-| `src/lib/gemini.ts` | Parse NL → chuyến đi + regex fallback | Trùng khái niệm với pricing/matching |
+| `src/lib/ai.ts` | Parse NL → chuyến đi + regex fallback | Trùng khái niệm với pricing/matching |
 
 Cùng một khái niệm (giá, khoảng cách, trường) được xử lý ở nhiều nơi nhưng **không có nguồn sự thật
 duy nhất** cho business rules. Ví dụ: công thức giá xuất hiện trong `utils/pricing.ts` (dùng thật)
@@ -65,8 +65,9 @@ Code chết gây hiểu nhầm cho người đọc và làm sai lệch ước l�
 
 ### A6-05 — Cấu trúc thư mục chưa nhất quán
 
-- `src/utils/` chứa cả `supabase/` (hạ tầng) lẫn `constants.ts`, `pricing.ts`, `matching.ts` (nghiệp vụ).
-- `src/lib/` chứa `gemini.ts` (tích hợp) và các file khác — ranh giới `lib` vs `utils` không rõ nghĩa.
+- `src/utils/` hiện chứa `supabase/` (hạ tầng) và `constants.ts`; pricing/matching thực tế nằm trong `src/lib/`.
+- `src/lib/` chứa `ai.ts`, `pricing.ts`, `matching.ts`, `messenger.ts`; các tài liệu cũ dùng `gemini.ts` là lỗi thời.
+- `src/components/` tồn tại nhưng hiện chưa có component dùng chung đáng kể, không nên ghi là thư mục không tồn tại.
 - Route admin nằm ngoài `(main)` group nhưng dùng cùng layout gốc, dẫn tới việc thiếu kiểm tra auth
   bị bỏ sót (xem EPIC-01).
 
@@ -98,6 +99,7 @@ Code chết gây hiểu nhầm cho người đọc và làm sai lệch ước l�
 - **EPIC-01** phải hoàn tất trước khi refactor các Server Action (tránh chồng chéo diff và tránh
   việc refactor che mất lỗi bảo mật).
 - **EPIC-03** phải hoàn tất trước khi "chuẩn hoá enum" (vì enum thật phụ thuộc DB — hiện `UNKNOWN`).
+- Không bắt đầu refactor trip/matching/pricing trước khi EPIC-03 chốt mapping với schema `trips` normalized 27 cột.
 - **Q1 (quyền truy cập DB)** — không thể viết test dựa trên dữ liệu thật nếu chưa có quyền.
 - Không phụ thuộc quyết định PO cho phần lớn hạng mục, **ngoại trừ** phạm vi test (xem Q10 đề xuất).
 
