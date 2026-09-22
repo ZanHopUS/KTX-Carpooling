@@ -22,7 +22,7 @@ Bù những mảng nghiệp vụ mà tài liệu/UI đã cam kết nhưng **chư
 | # | Khoảng trống | Bằng chứng |
 |---|---|---|
 | 1 | **Đánh giá không có tác dụng**: không chống trùng, không kiểm tra chuyến `COMPLETED`, **không cập nhật `profiles.rating`** ⇒ tiêu chí "+10 uy tín" trong matching vô nghĩa | `chat/actions.ts:57-70` |
-| 2 | Bảng `ratings` chưa xác minh tồn tại ⇒ chức năng đánh giá **có thể hỏng âm thầm** | `chat/actions.ts:63` |
+| 2 | Bảng `ratings` tồn tại nhưng schema/runtime chưa xác minh ⇒ chức năng đánh giá vẫn có thể hỏng âm thầm | `chat/actions.ts:63`, database evidence 2026-09-21 |
 | 3 | **Không cưỡng chế xác minh**: người chưa xác minh vẫn đăng chuyến & gửi yêu cầu được | `trips/actions.ts`, `trips/[id]/actions.ts:7` |
 | 4 | **Báo cáo vi phạm chưa tồn tại** dù landing cam kết | `types/database.ts:72` (chỉ có type, không dùng) |
 | 5 | `completed_trip_count` **không bao giờ được tăng** ⇒ thành tích người dùng luôn = 0 | không nơi nào ghi cột này |
@@ -86,3 +86,10 @@ Bù những mảng nghiệp vụ mà tài liệu/UI đã cam kết nhưng **chư
 - [ ] Không còn tính năng nào được landing page quảng cáo mà chưa tồn tại
 - [ ] Điểm uy tín (`profiles.rating`) thay đổi thật sau khi có đánh giá
 - [ ] Trạng thái chuyến luôn nhất quán sau mọi thao tác huỷ
+
+## 8. Reconciliation với DB live (2026-09-21)
+
+- `ratings` **đã tồn tại** trên DB DEV; schema cột và khả năng chạy runtime vẫn chưa được xác minh. Code dùng `stars`, trong khi mô hình docs dùng `score`.
+- `messages` **không tồn tại** trên DB DEV; chat hiện là functional gap thực tế, không chỉ là bảng chưa kiểm tra.
+- `notifications` và `trip_reports` mới ở mức `DOCUMENTED`/type; chưa được coi là bảng live.
+- `trips` normalized đang chặn toàn bộ luồng tạo trip, nên EPIC-05 chỉ bắt đầu sau khi EPIC-03 chốt baseline và mapping dữ liệu.

@@ -29,8 +29,8 @@ Chuyển toàn bộ hiểu biết về database từ trạng thái `UNKNOWN` san
 | 4 | `trips`: code dùng `date`, tài liệu + schema nói `trip_date` | `trips/actions.ts:37` vs `schema.sql:18` |
 | 5 | `profiles`: type dùng `status`, tài liệu nói `account_status` | `types/database.ts` vs `docs/database/supabase-structure.md` |
 | 6 | Enum case: code gửi HOA, schema comment ghi thường | `(auth)/register/page.tsx` (radio HOA) vs `schema.sql:14` |
-| 7 | Bảng `ratings` — code dùng, tài liệu không nhắc | `chat/actions.ts:63` |
-| 8 | Bảng `messages` — code dùng, chưa xác minh tồn tại | `chat/page.tsx:61` |
+| 7 | Bảng `ratings` — đã tồn tại nhưng schema cột chưa dump | `chat/actions.ts:63`, PO DB evidence 2026-09-21 |
+| 8 | Bảng `messages` — đã xác minh không tồn tại trên DB DEV | `chat/page.tsx:61`, PO DB evidence 2026-09-21 |
 | 9 | Ảnh thẻ KTX lưu ở bucket **public** `dorm-cards` | `(main)/profile/actions.ts` |
 | 10 | Upload lỗi ⇒ **tạo URL giả** rồi vẫn chuyển `PENDING` | `(main)/profile/actions.ts` |
 | 11 | Trạng thái `NEED_REVIEW` có trong schema, không có trong code | `schema.sql:12` |
@@ -106,3 +106,12 @@ Chuyển toàn bộ hiểu biết về database từ trạng thái `UNKNOWN` san
 - [ ] Không còn 2 luồng/bucket lưu thẻ KTX
 - [ ] "Đăng chuyến" hoạt động end-to-end với schema thật (đã kiểm thử runtime)
 - [ ] TC-1…TC-11 của TASK-001 chạy lại và PASS (bồi đắp runtime AC-01…AC-06 đã defer)
+
+## 8. Reconciliation với dữ liệu 2026-09-21
+
+- `trips` không còn là câu hỏi `date` vs `trip_date`: DB live có `trip_date`, không có `date`; code hiện là phía sai.
+- `trips` live là schema normalized 27 cột, không phải mô hình phẳng mà các action hiện đang gửi.
+- `locations` và `routes` đã tồn tại và có dữ liệu thật; schema chi tiết vẫn cần dump.
+- `ratings` đã tồn tại nhưng chưa có dump cột; `messages` không tồn tại trên DB DEV.
+- `trip_requests`, enum, RLS và nhiều bảng mở rộng vẫn cần bằng chứng trực tiếp; không nâng nhãn chỉ dựa trên docs.
+- TASK-002 tạo `messages` là một phương án `PROPOSED`, không được xem là đã áp dụng và không thể thay thế quyết định baseline `trips`.

@@ -21,7 +21,7 @@ mọi hạng mục ở đây đều **phụ thuộc vào nền tảng ổn đị
 
 ### A8-01 — Tích hợp OSRM: hoạt động nhưng có đường lui "im lặng"
 
-- `src/utils/` (module tính khoảng cách) gọi `router.project-osrm.org` với profile xe máy để lấy
+- `src/lib/pricing.ts` gọi `router.project-osrm.org` với profile xe máy để lấy
   khoảng cách đường thực tế; khi lỗi/timeout thì rơi về `DISTANCE_MATRIX` (bảng khoảng cách cứng).
 - **Vấn đề:** việc rơi về fallback **không được báo cho người dùng biết**. Người dùng thấy một con số
   khoảng cách/giá mà không biết đó là số liệu thật hay ước lượng cứng.
@@ -30,7 +30,7 @@ mọi hạng mục ở đây đều **phụ thuộc vào nền tảng ổn đị
 
 ### A8-02 — Gemini (parse ngôn ngữ tự nhiên): có fallback regex
 
-- `src/lib/gemini.ts` dùng Gemini 1.5 Flash để parse câu mô tả tự nhiên thành dữ liệu chuyến đi,
+- `src/lib/ai.ts` dùng Gemini 1.5 Flash để parse câu mô tả tự nhiên thành dữ liệu chuyến đi,
   kèm fallback regex khi không gọi được API hoặc parse thất bại.
 - Cần **API key** trong biến môi trường. Trạng thái key trên môi trường thật: **UNKNOWN**.
 - Chất lượng parse của fallback regex thấp hơn đáng kể — chưa có ghi nhận nào về việc người dùng có
@@ -61,6 +61,12 @@ Các mục dưới đây **có mặt trong tài liệu/thiết kế nhưng chưa
 - Landing page có khối "tìm kiếm nhanh" nhưng **không gọi API và không gắn handler** — người dùng
   nhập liệu và bấm không có gì xảy ra.
 - Ảnh minh hoạ có sẵn (`public/hero-illustration.jpg`) nhưng chưa có asset nào khác cho các màn hình.
+
+### A8-06 — Dữ liệu địa lý đã có trên DB
+
+- `locations` và `routes` đã được xác nhận tồn tại và có dữ liệu thật trên DB DEV.
+- Đây không còn chỉ là dataset dự phòng; tuy nhiên schema chi tiết và mapping sang code vẫn cần EPIC-03.
+- Dataset mở rộng hơn 6 trường lõi trong UI, nên không được coi việc có dữ liệu là đã hỗ trợ toàn bộ điểm đến.
 
 ---
 

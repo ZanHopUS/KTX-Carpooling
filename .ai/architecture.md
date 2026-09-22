@@ -2,6 +2,8 @@
 
 > Kiến trúc **như đang được cài đặt** (as-is), không phải kiến trúc mong muốn.
 > Bằng chứng: cấu trúc thư mục `src/`, `package.json`, `src/proxy.ts`.
+>
+> **Cập nhật trạng thái 2026-09-21:** write path của `trips` chưa tương thích schema live normalized. `locations`/`routes` đã có dữ liệu thật; `messages` không tồn tại trên DB DEV.
 
 ---
 
@@ -64,6 +66,8 @@
 
 ## 3. Cấu trúc route
 
+> `/trips/create` được proxy bảo vệ nhưng mutation vẫn hỏng do mismatch schema `trips`; đây là lỗi data-integrity, không phải lỗi route protection.
+
 | Route | Loại | Bảo vệ | Ghi chú |
 |---|---|---|---|
 | `/` | Server Component | — | Landing page marketing |
@@ -87,6 +91,13 @@
 ---
 
 ## 4. Luồng dữ liệu & mutation
+
+### 4.0 Ranh giới dữ liệu thực tế
+
+- `locations` và `routes` là nguồn dữ liệu địa lý đã xác nhận tồn tại trên DB DEV.
+- `trips` live là mô hình normalized 27 cột; các module hiện tại vẫn dùng mô hình phẳng cũ (`date`, `available_seats`, `destination_university`, `suggested_price`, ...).
+- `lib/pricing.ts` và `lib/matching.ts` mô tả logic nghiệp vụ, nhưng chưa thể coi là tương thích với write/read path live cho tới khi EPIC-03 hoàn tất.
+- `messages` chưa tồn tại trên DB DEV, nên chat route/action hiện chỉ là implementation chưa khả dụng runtime.
 
 ### 4.1 Server Actions (đường mutation chính)
 | File | Actions | Kiểm tra uỷ quyền |

@@ -88,3 +88,9 @@ Làm cho hai thuật toán lõi — **ghép chuyến** và **tính giá** — ch
 - [ ] Không còn thành phần nào trong công thức điểm bị "chết"
 - [ ] Dữ liệu campus trong DB đọc được bằng tên
 - [ ] Lọc theo khu KTX + trường + ngày đều hoạt động từ UI
+
+## 8. Cập nhật dependency 2026-09-21
+
+- `distance_km`, `suggested_price`, `available_seats`, `pickup_area` và `destination_university` thuộc mô hình code cũ; các trường này không có trong live `trips` normalized.
+- Không sửa matching/pricing theo các trường trên trước khi EPIC-03 chốt mapping sang `route_id`, `pickup_location_id` và snapshot distance/price.
+- Dataset `locations/routes` rộng hơn 6 trường lõi trong UI; cần quyết định phạm vi mapping trước khi mở rộng matching.

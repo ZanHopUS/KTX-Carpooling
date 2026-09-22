@@ -98,3 +98,11 @@ normalized 27 cột, trong khi code ghi theo 17 cột của một thiết kế c
 | File test | 0 | > 0 |
 | Endpoint không xác thực | 2 (`api/ai/*`) | 0 |
 | Luồng upload thẻ KTX | 2 (trùng) | 1 |
+
+## 6. Reconciliation với docs/DB mới nhất
+
+- `trips` live đã được xác minh là normalized 27 cột và có `trip_date`; code đang lệch nên “Đăng chuyến” là blocker thực tế, không còn là giả thuyết schema.
+- `locations` và `routes` tồn tại và có dữ liệu thật; schema chi tiết vẫn cần dump.
+- `ratings` tồn tại nhưng schema cột chưa xác minh; `messages` không tồn tại trên DB DEV.
+- TASK-002 chỉ là migration `PROPOSED`; không mở runtime chat hoặc runtime TASK-001 cho tới khi PO áp dụng và verify migration.
+- Hướng đồng bộ code theo DB normalized hay thay đổi DB bằng migration có chủ đích vẫn là quyết định mở của EPIC-03.

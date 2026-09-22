@@ -1,5 +1,7 @@
 # EXECUTION REPORT — TASK-001 (UPDATED AFTER FIX)
 
+> Historical status report: trạng thái `IN_REVIEW` tại đây đã được supersede bởi static approval `DONE` ngày 2026-09-21; runtime verification vẫn defer sang EPIC-03.
+
 ## 1. Trạng thái
 🟡 **IN_REVIEW** (chờ Qoder re-verification)
 

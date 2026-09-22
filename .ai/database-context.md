@@ -12,8 +12,9 @@
 | Có file DDL chạy được trong repo? | **KHÔNG.** `supabase/schema.sql` chỉ là **comment**, không có câu lệnh SQL nào. |
 | Có migration? | **KHÔNG.** `supabase/migrations/` rỗng hoàn toàn (0 file). |
 | File migration được tham chiếu | `migrations/20260916_align_ktx_schema.sql` — **KHÔNG TỒN TẠI trong repo**. |
-| Trạng thái schema thật | `trips` đã xác minh **`ACTUAL`** (§16 — lệch hoàn toàn với code, 3 thiết kế khác nhau); các bảng khác vẫn `UNKNOWN`. |
-| Rủi ro lớn nhất | Không thể tái lập môi trường; không thể review thay đổi schema; tài liệu và code mâu thuẫn về tên cột. |
+| Trạng thái schema thật | `trips` có đủ 27 cột được xác minh `ACTUAL` (§16); `profiles`, `ratings`, `messages`, `routes`, `locations` đã có bằng chứng trực tiếp về sự tồn tại hoặc vắng mặt (§14). Phần lớn cột, enum và RLS vẫn `UNKNOWN`. |
+| Tài liệu mới | `docs/database/*.md` và `docs/product/*.md` mô tả **mô hình mục tiêu `DOCUMENTED`**, không thay thế bằng chứng live DB. |
+| Rủi ro lớn nhất | Code đang ghi mô hình `trips` phẳng, trong khi DB thật dùng mô hình normalized; tính năng “Đăng chuyến” hỏng với mọi user. |
 
 ---
 
@@ -21,13 +22,14 @@
 
 | Nguồn | Vai trò | Độ tin cậy |
 |---|---|---|
-| `supabase/schema.sql` | **Comment mô tả** schema "sau khi căn với project đang chạy" | Trung bình — do người viết tay, không kiểm chứng được |
-| `docs/database/supabase-structure.md` | Mô tả bảng/cột/enum/RLS | Trung bình — có chỗ lệch với code |
-| `docs/database/current-data.md` | Dữ liệu tĩnh: tòa KTX, campus, ma trận khoảng cách | Cao (khớp `constants.ts`) |
-| `src/types/database.ts` | Type TS mà code tin dùng | Cao cho **kỳ vọng của code**, không phải cho DB thật |
-| Lời gọi `.from(...)` trong code | Bằng chứng bảng **phải tồn tại** để app chạy | Cao |
+| CSV cột `public.trips` do PO xuất từ Supabase Dashboard | Bằng chứng trực tiếp cho 27 cột và kiểu dữ liệu `trips` | `ACTUAL` — xem §16 |
+| Xác nhận của PO trên Supabase Dashboard | Sự tồn tại/vắng mặt của một số bảng, môi trường DEV | `ACTUAL` — xem §14 |
+| `docs/database/supabase-structure.md` | Mô hình dữ liệu mục tiêu rộng, enum và RLS mong muốn | `DOCUMENTED` — không xác minh live |
+| `docs/database/current-data.md`, `docs/product/*.md` | Domain, dữ liệu tham chiếu và nghiệp vụ mục tiêu | `DOCUMENTED`; các CSV/TXT được viện dẫn hiện không có trong workspace |
+| `supabase/schema.sql` | Comment mô tả schema dự kiến | `DOCUMENTED` — không chạy được, không kiểm chứng live |
+| `src/types/database.ts` và lời gọi `.from(...)` | Kỳ vọng của implementation hiện tại | `EXPECTED`, không phải bằng chứng DB thật |
 
-> **Không có nguồn nào là `ACTUAL`.** Toàn bộ hiểu biết về schema đều là gián tiếp.
+> Chỉ dữ liệu ở §14 và §16 được gắn `ACTUAL`. Các tài liệu mới giúp xác định mô hình đích và mismatch, nhưng không được dùng để nâng cột, enum hoặc RLS lên `ACTUAL`.
 
 ---
 
@@ -35,13 +37,13 @@
 
 | Bảng | Nơi gọi (bằng chứng) | Nhãn |
 |---|---|---|
-| `profiles` | 12 nơi, gồm `(main)/layout.tsx:13`, `dashboard/page.tsx:16`, `(auth)/actions.ts:118` | `EXPECTED` |
-| `trips` | `trips/actions.ts:37`, `trips/page.tsx:27,38`, `dashboard/page.tsx:25`, `chat/actions.ts:37` | `EXPECTED` |
-| `trip_requests` | `trips/[id]/actions.ts:57,92,100,125,129,151`, `requests/page.tsx:16,37` | `EXPECTED` |
-| `messages` | `chat/page.tsx:61`, `chat/actions.ts:15,44` | `EXPECTED` |
-| `ratings` | `chat/actions.ts:63` | `EXPECTED` ⚠️ không có trong bất kỳ tài liệu nào |
+| `profiles` | 12 nơi, gồm `(main)/layout.tsx:13`, `dashboard/page.tsx:16`, `(auth)/actions.ts:118` | `EXPECTED`; sự tồn tại `ACTUAL` (§14), cột chưa xác minh đủ |
+| `trips` | `trips/actions.ts:37`, `trips/page.tsx:27,38`, `dashboard/page.tsx:25`, `chat/actions.ts:37` | `EXPECTED`; 27 cột thật `ACTUAL` (§16), lệch code |
+| `trip_requests` | `trips/[id]/actions.ts:57,92,100,125,129,151`, `requests/page.tsx:16,37` | `EXPECTED`; schema live `UNKNOWN` |
+| `messages` | `chat/page.tsx:61`, `chat/actions.ts:15,44` | `EXPECTED`, nhưng bảng **vắng mặt `ACTUAL`** trên live DB (§14) |
+| `ratings` | `chat/actions.ts:87` | `EXPECTED`; sự tồn tại `ACTUAL` (§14), mô hình cột `DOCUMENTED` (§7) |
 | **`users`** | `api/verifications/route.ts:35` | ❌ **SAI — gần như chắc chắn không tồn tại** (lỗi #3.1) |
-| `trip_reports` | Không nơi nào gọi; chỉ có interface `types/database.ts:72` | `UNKNOWN` — dead type |
+| `trip_reports` | Không nơi nào gọi; chỉ có interface `types/database.ts:72` | `DOCUMENTED` trong docs mới; live schema vẫn `UNKNOWN` |
 
 ---
 
@@ -71,11 +73,13 @@
 | `school` | ❌ | ✓ "cột cũ, đồng bộ từ university" | ❌ | `UNKNOWN` | **Cột di sản** |
 | `verification_status` | ❌ | ✓ "cột cũ, không dùng" | ❌ | `UNKNOWN` | **Cột di sản** |
 
+**Cập nhật tài liệu 2026-09-21:** `docs/database/supabase-structure.md` mô tả một mô hình `profiles` mục tiêu rộng hơn, gồm `account_status`, `verification_status`, `average_rating`, `rating_count`, `cancelled_trip_count`, `date_of_birth`, `avatar_url` và các trường KTX/Messenger. Đây là `DOCUMENTED`, không phải CSV/schema live. Các tên hiện code dùng (`status`, `dorm_card_verified`, `rating`) vẫn chưa được đối chiếu trực tiếp với cột live.
+
 ### 3.2 Câu hỏi cần PO quyết
 1. Cột đúng là **`status`** hay **`account_status`**?
-2. Giá trị `role` lưu **chữ HOA** hay **chữ thường**? (Code gửi HOA, schema comment ghi thường.)
-3. Có cần xử lý trạng thái **`NEED_REVIEW`** không? (Có trong schema, không có trong code/UI.)
-4. `cancelled_trip_count` và `email_verified` đã tồn tại trong DB thật chưa?
+2. Giá trị `role` lưu **chữ HOA** hay **chữ thường**? (Code gửi HOA, tài liệu mới mô tả `user`/`admin` chữ thường.)
+3. Có cần xử lý trạng thái xác minh đầy đủ theo tài liệu (`unverified`, `pending`, `verified`, `rejected`, `expired`) hay chỉ bộ giá trị code hiện có?
+4. Các cột `email_verified`, `dorm_card_verified`, `rating` và `average_rating` có tồn tại/ánh xạ thế nào trên DB thật?
 5. Tài khoản **ADMIN** được tạo bằng cách nào? (Không có UI, không có seed script.)
 
 ---
@@ -107,78 +111,75 @@
 | `notes` | ❌ | ✓ "cột cũ / phụ" | ✓ | ⚠️ | Code có nhập `notes` |
 | `created_at` | ✓ | — | ✓ | `DOCUMENTED` | |
 
-### 4.1 🔴 Xung đột nghiêm trọng: `date` vs `trip_date`
-- **Nguồn A** (`docs/database/supabase-structure.md` + `supabase/schema.sql:18`): cột là **`trip_date`**, comment ghi rõ *"schema sau khi căn với project Supabase đang chạy"*.
-- **Nguồn B** (implementation): `(main)/trips/actions.ts:37` insert **`date`**; `trips/page.tsx`, `matching.ts` đọc `trip.date`; type `Trip.date` khai báo `date`.
-- **Ảnh hưởng nếu DB thật là `trip_date`**: `createTripAction` insert **thất bại** (cột không tồn tại) ⇒ **không đăng được chuyến**; tìm kiếm và matching cũng hỏng.
-- **Ảnh hưởng nếu DB thật là `date`**: tài liệu + `schema.sql` sai, cần cập nhật.
-- **Cần PO quyết định**: tên cột thật là gì? → xem `.ai/reports/onboarding-report.md` §CONFLICTS.
+### 4.1 🔴 Xung đột đã xác minh: `date` vs `trip_date`
+- **DB live `ACTUAL`** (§16): có **`trip_date`**, không có `date`.
+- **Code `EXPECTED`**: `(main)/trips/actions.ts:37` insert **`date`**; `trips/page.tsx`, `matching.ts` đọc `trip.date`; type `Trip.date` khai báo `date`.
+- **Tài liệu mới `DOCUMENTED`**: mô hình `trips` normalized liệt kê `trip_date` cùng 26 cột trùng CSV live, nhưng cũng liệt kê `date` là alias/legacy.
+- **Kết luận**: `date` không phải alias tồn tại trên DB live hiện tại; mọi đường ghi/đọc code phụ thuộc nó đều phải được đồng bộ trong EPIC-03, không còn là câu hỏi cần PO xác nhận.
 
 ### 4.2 ⚠️ Xung đột case enum
 - Code so sánh **chữ HOA**: `'OPEN'`, `'REQUESTED'`, `'ACCEPTED'`, `'COMPLETED'`, `'CANCELLED'`.
-- `schema.sql:22` ghi `status (OPEN | REQUESTED | ACCEPTED | …)` — HOA.
-- `lib/matching.ts` có `trip.status?.toUpperCase() !== 'OPEN'` — **dấu hiệu phòng thủ**, gợi ý lập trình viên từng gặp giá trị chữ thường.
+- Tài liệu mới `DOCUMENTED` liệt kê `trip_status` chữ thường: `open`, `full`, `expired`, `in_progress`, `completed`, `cancelled`; `supabase/schema.sql` comment lại ghi HOA.
+- CSV live chỉ chứng minh `trips.status` là **enum**, không cung cấp các giá trị thành viên.
 - **Rủi ro**: nếu DB lưu chữ thường, so sánh `===` sẽ sai ở `createTripRequestAction` ⇒ không gửi được yêu cầu.
-- **Cần PO quyết định**: giá trị enum thật là gì?
+- **Cần PO xác nhận/export enum**: giá trị enum `trips.status` thật.
 
 ---
 
 ## 5. `trip_requests`
 
-| Cột | Tài liệu | `schema.sql` | Code | Nhãn |
-|---|---|---|---|---|
-| `id` | ✓ | — | ✓ | `DOCUMENTED` |
-| `trip_id` | ✓ → `trips.id` | ✓ | ✓ | `DOCUMENTED` |
-| `passenger_id` | ✓ → `profiles.id` | ✓ | ✓ | `DOCUMENTED` |
-| `requested_pickup_time` | ✓ | ✓ | ✓ | `DOCUMENTED` |
-| `match_score` | ✓ | ✓ | ✓ | `DOCUMENTED` |
-| `message` | ✓ | ✓ | ✓ | `DOCUMENTED` |
-| `status` | ✓ | ✓ | `'PENDING'\|'ACCEPTED'\|'REJECTED'\|'CANCELLED'` | `DOCUMENTED` |
-| `created_at` | ✓ | — | ✓ | `DOCUMENTED` |
+| Cột | Tài liệu mới | Code | Nhãn |
+|---|---|---|---|
+| `id` | ✓ | ✓ | `DOCUMENTED` |
+| `trip_id` | ✓ → `trips.id` | ✓ | `DOCUMENTED` |
+| `passenger_id` | ✓ → `profiles.id` | ✓ | `DOCUMENTED` |
+| `requested_pickup_time` | ❌ | ✓ | `EXPECTED` — live schema `UNKNOWN` |
+| `match_score` | ❌ | ✓ | `EXPECTED` — live schema `UNKNOWN` |
+| `message` | ✓ | Code hiện không insert khi tạo request | `DOCUMENTED`; live schema `UNKNOWN` |
+| `status` | ✓, enum thường | `'PENDING'\|'ACCEPTED'\|'REJECTED'\|'CANCELLED'` | ⚠️ `DOCUMENTED`/code lệch case |
+| `responded_at`, `responded_by`, `updated_at` | ✓ | ❌ | `DOCUMENTED` |
+| `created_at` | ✓ | ✓ | `DOCUMENTED` |
+
+> Chưa có bằng chứng trực tiếp cho schema `trip_requests`; bảng trên chỉ phân biệt mô hình mục tiêu trong docs với payload hiện code gửi.
 
 ---
 
 ## 6. `messages`
 
-| Cột | Tài liệu | Code | Nhãn |
-|---|---|---|---|
-| `id` | ✓ | ✓ | `DOCUMENTED` |
-| `trip_id` | ✓ | ✓ | `DOCUMENTED` |
-| `sender_id` | ✓ | ✓ | `DOCUMENTED` |
-| `content` | ✓ | ✓ | `DOCUMENTED` |
-| `created_at` | ✓ | ✓ | `DOCUMENTED` |
-
-> **Sự tồn tại thật của bảng này = `UNKNOWN`.** Chưa có bằng chứng nào ngoài code gọi tới.
+| Mô hình | Bằng chứng | Nhãn |
+|---|---|---|
+| Quan hệ trip → messages và RLS chỉ thành viên | `docs/database/supabase-structure.md` §§4–5 | `DOCUMENTED`; tài liệu không liệt kê cột |
+| Code đọc/ghi `id`, `trip_id`, `sender_id`, `content`, `created_at` | `chat/page.tsx`, `chat/actions.ts` | `EXPECTED` |
+| Bảng không tồn tại trên live DB DEV | PO kiểm tra Supabase Dashboard (§14) | `ACTUAL` — chat hiện lỗi runtime |
 
 ---
 
-## 7. Bảng `ratings` — hoàn toàn `UNKNOWN`
+## 7. `ratings` — tồn tại `ACTUAL`, schema cột chưa xác minh
 
-- **Bằng chứng duy nhất**: `chat/actions.ts:63` `.from('ratings').insert({...})`.
-- **KHÔNG** xuất hiện trong `docs/`, **KHÔNG** xuất hiện trong `supabase/schema.sql`.
-- Type `Rating` có ở `types/database.ts:62`.
-- **Câu hỏi**: bảng có tồn tại? Tên cột là gì? `submitRatingAction` hiện có chạy được không?
-- Nếu bảng không tồn tại ⇒ chức năng đánh giá **hỏng hoàn toàn** (im lặng, không báo lỗi cho người dùng).
+- **Sự tồn tại `ACTUAL`**: PO xác nhận bảng có trên Supabase Dashboard (§14).
+- **Mô hình `DOCUMENTED`**: `id`, `trip_id`, `from_user_id`, `to_user_id`, `score`, `comment`, `available_at`, `created_at` trong `docs/database/supabase-structure.md` §2.12.
+- **Code `EXPECTED`**: `submitRatingAction` gửi `trip_id`, `from_user_id`, `to_user_id`, **`stars`**, `comment` tại `chat/actions.ts:87`.
+- **Mismatch cần xác minh**: docs gọi cột điểm là `score`, code gửi `stars`; chưa có CSV/schema live để kết luận cột nào tồn tại.
 
 ---
 
-## 8. Bảng `trip_reports` — `UNKNOWN` (khả năng cao không tồn tại)
+## 8. `trip_reports` — `DOCUMENTED`, live schema `UNKNOWN`
 
-- Chỉ có `interface TripReport` ở `types/database.ts:72`.
-- `grep` toàn `src/` → **không nơi nào sử dụng**.
-- Landing page quảng cáo "Báo cáo sự cố" (mục #3.17).
+- Docs mới mô tả cột `id`, `trip_id`, `reporter_id`, `reported_user_id`, `reason`, `description`, `status`, thông tin review và `created_at`.
+- Chỉ có `interface TripReport` ở `types/database.ts:72`; `grep` toàn `src/` → **không nơi nào sử dụng**.
+- Landing page quảng cáo "Báo cáo sự cố", nhưng sự tồn tại bảng và luồng thực thi trên DB live vẫn `UNKNOWN`.
 
 ---
 
 ## 9. Enum — tổng hợp
 
-| Enum | Giá trị theo tài liệu | Giá trị theo code | Nhãn |
+| Enum | Giá trị theo tài liệu mới | Giá trị theo code | Nhãn |
 |---|---|---|---|
-| `user_role` | `passenger \| driver \| both \| admin` (thường) | `DRIVER \| PASSENGER \| BOTH \| ADMIN` (HOA) | ⚠️ `UNKNOWN` + xung đột |
-| `verification_status` | `PENDING \| VERIFIED \| REJECTED \| NEED_REVIEW` | `PENDING \| VERIFIED \| REJECTED` | ⚠️ thiếu `NEED_REVIEW` |
-| `trip_status` | `OPEN \| REQUESTED \| ACCEPTED \| …` | `OPEN \| REQUESTED \| ACCEPTED \| COMPLETED \| CANCELLED` | `UNKNOWN` (case) |
-| `trip_request_status` | mô tả có | `PENDING \| ACCEPTED \| REJECTED \| CANCELLED` | `DOCUMENTED` |
-| `payment_method` | `CASH \| BANK_TRANSFER` | ✓ | `DOCUMENTED` |
+| `user_role` | `user \| admin` (thường) | `DRIVER \| PASSENGER \| BOTH \| ADMIN` (HOA) | `DOCUMENTED`/`EXPECTED` xung đột; live `UNKNOWN` |
+| `verification_status` | `unverified \| pending \| verified \| rejected \| expired` | `PENDING \| VERIFIED \| REJECTED` | `DOCUMENTED`/`EXPECTED` xung đột; live `UNKNOWN` |
+| `trip_status` | `open \| full \| expired \| in_progress \| completed \| cancelled` | `OPEN \| REQUESTED \| ACCEPTED \| COMPLETED \| CANCELLED` | `DOCUMENTED`/`EXPECTED` xung đột; CSV chỉ xác nhận kiểu enum |
+| `trip_request_status` | `pending \| accepted \| rejected \| cancelled \| expired` | `PENDING \| ACCEPTED \| REJECTED \| CANCELLED` | `DOCUMENTED`/`EXPECTED` xung đột; live `UNKNOWN` |
+| `payment_method` | Không có enum tương ứng trong mô hình normalized | `CASH \| BANK_TRANSFER` | `EXPECTED`; live `UNKNOWN` |
 
 ---
 
@@ -227,14 +228,14 @@ Theo `docs/database/supabase-structure.md`:
 |---|---|---|
 | D1 | **ĐÃ GIẢI (2026-09-21): `trip_date`** — code dùng `date` là SAI (bằng chứng CSV của PO, §16) | ✅ Xong |
 | D2 | Cột trạng thái tài khoản: `status` hay `account_status`? | 🟠 Cao |
-| D3 | Enum lưu chữ HOA hay chữ thường? | 🔴 Chặn |
-| D4 | Bảng `ratings` có tồn tại không? Schema ra sao? | 🟠 Cao |
-| D5 | Bảng `messages` có tồn tại không? | 🟠 Cao |
+| D3 | Giá trị enum live lưu chữ HOA hay thường? | 🔴 Chặn |
+| D4 | `ratings` **đã tồn tại `ACTUAL`**; cần export schema cột và chốt `stars` hay `score`. | 🟠 Cao |
+| D5 | `messages` **vắng mặt `ACTUAL`**; PO cần duyệt TASK-002 hoặc schema thay thế trước runtime chat. | 🟠 Cao |
 | D6 | Chấp nhận cung cấp **schema dump** hoặc kết nối read-only để chuyển `UNKNOWN` → `ACTUAL`? | 🔴 Chặn |
-| D7 | Đưa file `20260916_align_ktx_schema.sql` vào repo? | 🟠 Cao |
+| D7 | Đưa DDL/migration baseline từ DB thật vào repo? | 🟠 Cao |
 | D8 | Cơ chế tạo tài khoản ADMIN? | 🟠 Cao |
 | D9 | Xử lý 2 bucket thẻ KTX (gộp về 1 bucket private)? | 🔴 Bảo mật |
-| D10 | Có áp dụng trạng thái `NEED_REVIEW` trong nghiệp vụ? | 🟡 Trung bình |
+| D10 | Có áp dụng toàn bộ trạng thái xác minh được mô tả trong tài liệu mới? | 🟡 Trung bình |
 
 ---
 
@@ -297,6 +298,7 @@ Nguồn: PO chạy query `information_schema.columns` (bảng `public.trips`) v�
 | `duration_seconds_snapshot` | integer | `accepted_passenger_id` | uuid |
 | `price_snapshot` | integer | `accepted_request_id` | uuid |
 | `currency` | text | | |
+
 | `note` | text | | |
 
 ### 16.2 Đối chiếu với 17 cột code insert (`createTripAction`)
@@ -329,3 +331,30 @@ Nguồn: PO chạy query `information_schema.columns` (bảng `public.trips`) v�
 
 **Hệ quả orchestration:** fixture run TASK-001 không thể tiếp tục qua UI. Đồng bộ code ↔ DB là quyết định
 kiến trúc thuộc PO, ngoài phạm vi TASK-001 (chi tiết: `.ai/reports/RUNTIME-LOG-TASK-001.md` §8).
+
+## 17. Reconciliation với docs mới (2026-09-21)
+
+Phần này là kết luận ưu tiên khi nội dung cũ trong tài liệu mâu thuẫn với bằng chứng mới:
+
+| Đối tượng | Kết luận hiện tại | Nhãn |
+|---|---|---|
+| `trips` | Bảng tồn tại; schema live là normalized 27 cột; có `trip_date`, không có `date`; code hiện không tương thích với write path | `ACTUAL` |
+| `locations` | Bảng tồn tại và có dữ liệu trên DB DEV; chưa có dump đầy đủ cột | `ACTUAL` về sự tồn tại/dữ liệu, `UNKNOWN` về schema chi tiết |
+| `routes` | Bảng tồn tại và có dữ liệu trên DB DEV; chưa có dump đầy đủ cột | `ACTUAL` về sự tồn tại/dữ liệu, `UNKNOWN` về schema chi tiết |
+| `ratings` | Bảng tồn tại; cột thật chưa được dump; code dùng `stars`, docs mục tiêu dùng `score` | `ACTUAL` về sự tồn tại, `UNKNOWN` về schema |
+| `messages` | Không tồn tại trên DB DEV; các route chat hiện không thể chạy end-to-end | `ACTUAL` |
+| `trip_requests` | Code và docs đều tham chiếu, nhưng chưa có bằng chứng schema live trực tiếp | `UNKNOWN` |
+| `notifications`, `trip_reports` | Chỉ được mô tả trong docs/type; chưa có bằng chứng live | `DOCUMENTED`, live `UNKNOWN` |
+
+### 17.1 Quy tắc đọc tài liệu mới
+
+- `docs/database/supabase-structure.md` là mô hình mục tiêu rộng, không tự động chứng minh schema live.
+- `docs/database/current-data.md` là domain/dataset tham chiếu; danh sách trường mở rộng không đồng nghĩa UI hiện tại hỗ trợ toàn bộ.
+- CSV locations/routes là nguồn domain quan trọng, nhưng các file nguồn không nằm trong workspace hiện tại; không tự suy luận thêm cột live từ CSV.
+- Không sửa code trips, matching, pricing hoặc chat trước khi EPIC-03 chốt hướng: sửa code theo DB normalized hay đưa DB về thiết kế khác bằng migration có chủ đích.
+
+### 17.2 Các mục cũ đã superseded
+
+- Mục §14 trước đây ghi `trips` và `trip_requests` là `UNKNOWN`; `trips` đã được nâng lên `ACTUAL` ở §15–§16. `trip_requests` vẫn `UNKNOWN`.
+- Mục §4.1 trước đây coi `date` vs `trip_date` là câu hỏi mở; bằng chứng CSV đã giải quyết: DB dùng `trip_date`, code dùng `date` là sai.
+- Mục §6 đã được xác nhận dứt điểm: `messages` vắng mặt trên DB DEV, không chỉ là chưa kiểm tra.

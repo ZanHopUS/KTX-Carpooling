@@ -8,6 +8,8 @@
 - **Người thực thi:** Antigravity (Execution Agent)
 - **Người verify:** Qoder (theo `verification-protocol.md`)
 
+> **Errata 2026-09-21:** `trips.trip_date` đã được xác minh là cột live; `trips.date` không tồn tại. Bảng `trips` là schema normalized 27 cột, nên runtime fixture bị chặn trước khi kiểm thử đầy đủ. TASK này `DONE` theo static approval; runtime verification defer sang EPIC-03. AC-04 còn phụ thuộc TASK-002 và việc PO áp dụng migration `messages`.
+
 ---
 
 ## 1. TASK ID

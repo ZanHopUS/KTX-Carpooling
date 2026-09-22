@@ -1,5 +1,7 @@
 # UNBLOCK PLAN — TASK-001 (Báo cáo Product Owner)
 
+> Historical plan: fixture path trong báo cáo này đã được supersede sau khi xác minh live `trips` là normalized và payload tạo chuyến hiện tại không tương thích.
+
 > Người soạn: Qoder (Orchestrator) — 2026-09-21
 > Bối cảnh: TASK-001 đang `BLOCKED` sau re-verification. Báo cáo đầy đủ: `VERIFICATION-REPORT-TASK-001.md`.
 > Mục đích: xác định chính xác phần đã chứng minh, phần còn thiếu, và phương án tối thiểu để PO ra quyết định unblock.

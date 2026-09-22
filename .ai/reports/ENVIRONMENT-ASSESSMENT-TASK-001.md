@@ -1,5 +1,7 @@
 # ENVIRONMENT ASSESSMENT — TASK-001
 
+> Historical report: phần repo-only ngày 2026-09-20 và kế hoạch fixture ban đầu đã được supersede bởi bằng chứng DB/runtime ngày 2026-09-21 trong `database-context.md` §§14–16.
+
 > Phạm vi: xác định môi trường Supabase mà project đang sử dụng, TRƯỚC khi chuẩn bị bất kỳ fixture/runtime test nào.
 > Ràng buộc bảo mật đã tuân thủ: không hiển thị/ghi lại service role key, API keys, tokens, cookies, passwords; không tạo user; không insert dữ liệu; không sửa database; không sửa source code.
 

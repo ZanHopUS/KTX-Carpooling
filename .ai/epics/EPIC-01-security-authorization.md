@@ -89,3 +89,9 @@
 - [ ] Không còn server action nào chỉ kiểm tra `if (!user)`
 - [ ] `/admin` không thể truy cập bởi người không phải ADMIN (đã kiểm thử tiêu cực)
 - [ ] `.ai/project-state.md` cập nhật: 0 lỗ hổng uỷ quyền
+
+## 8. Cập nhật trạng thái 2026-09-21
+
+- TASK-001 đã `DONE` theo static verification được PO chấp thuận; runtime AC-01…AC-06 vẫn defer sang EPIC-03.
+- Runtime không thể xác minh chat vì DB DEV không có bảng `messages`; không được coi static PASS là runtime PASS.
+- RLS thật vẫn `UNKNOWN`; việc bảng `messages` vắng mặt không làm mất yêu cầu kiểm tra authorization ở server action.
