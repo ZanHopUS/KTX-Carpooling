@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Trip, Message, UserProfile } from '@/types/database';
+import { Trip, Message, UserProfile, TripStatus } from '@/types/database';
 import { sendMessageAction, updateTripStatusAction, submitRatingAction } from './actions';
 
 interface ChatClientProps {
@@ -49,7 +49,7 @@ export default function ChatClient({ trip, currentUser, otherUser, initialMessag
   const handleQuickAction = async (msg: string, newStatus?: string) => {
     setIsSending(true);
     if (newStatus) {
-      await updateTripStatusAction(trip.id, newStatus as any, msg);
+      await updateTripStatusAction(trip.id, newStatus as TripStatus, msg);
     } else {
       await sendMessageAction(trip.id, msg);
     }
@@ -77,23 +77,27 @@ export default function ChatClient({ trip, currentUser, otherUser, initialMessag
   return (
     <div className="space-y-4 max-w-3xl mx-auto">
       {/* Header bar */}
-      <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+      <div className="p-4 sm:p-5 bg-white rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href={`/trips/${trip.id}`} className="text-slate-400 hover:text-slate-600 text-sm">
-            ← Chi tiết
+          <Link
+            href={`/trips/${trip.id}`}
+            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs transition shrink-0"
+            title="Quay lại chi tiết"
+          >
+            ←
           </Link>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-xs shrink-0">
             {otherUser.full_name?.slice(0, 1) || 'U'}
           </div>
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm">{otherUser.full_name}</h3>
-            <p className="text-[11px] text-slate-500">
+            <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">{otherUser.full_name}</h3>
+            <p className="text-xs text-slate-500 font-medium">
               {trip.pickup_point} → {trip.destination_university}
             </p>
           </div>
         </div>
 
-        <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+        <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
           {trip.status === 'ACCEPTED' ? '🟢 Chuyến đã chốt' : trip.status}
         </span>
       </div>
@@ -102,28 +106,28 @@ export default function ChatClient({ trip, currentUser, otherUser, initialMessag
       <div className="flex flex-wrap gap-2 text-xs">
         <button
           onClick={() => handleQuickAction('📍 Tôi đã có mặt tại điểm đón!')}
-          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-xl font-semibold border border-blue-200 dark:border-blue-900 transition"
+          className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-bold border border-blue-100 transition shadow-xs"
         >
           📍 Tôi đã đến điểm đón
         </button>
 
         <button
           onClick={() => handleQuickAction('⏰ Xin lỗi, mình bị trễ khoảng 5 phút!')}
-          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 rounded-xl font-semibold border border-amber-200 dark:border-amber-900 transition"
+          className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl font-bold border border-amber-200 transition shadow-xs"
         >
           ⏰ Báo trễ 5 phút
         </button>
 
         <button
           onClick={() => handleQuickAction('🎉 Chuyến đi hoàn tất! Cảm ơn bạn.', 'COMPLETED')}
-          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition shadow"
+          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition shadow-md shadow-emerald-500/20"
         >
           🎉 Hoàn thành chuyến đi
         </button>
 
         <button
           onClick={() => setShowRatingModal(true)}
-          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition shadow"
+          className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition shadow-md shadow-purple-500/20"
         >
           ⭐ Đánh giá
         </button>

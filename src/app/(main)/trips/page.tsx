@@ -1,8 +1,15 @@
 import { createClient } from '@/utils/supabase/server';
 import TripsSearchClient from './TripsSearchClient';
 import { Trip, UserProfile } from '@/types/database';
+import { toAppTripDTO } from '@/lib/mappers/tripMapper';
 
-export default async function TripsPage() {
+
+export default async function TripsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ university?: string; date?: string; dormArea?: string }>;
+}) {
+  const params = (await searchParams) || {};
   const supabase = await createClient();
 
   // Get logged-in user profile
@@ -47,19 +54,8 @@ export default async function TripsPage() {
     console.error('Error fetching trips:', error);
   }
 
-  // Normalize: convert all status values to uppercase for consistent matching
-  // This handles DB storing lowercase ('open') vs our app using uppercase ('OPEN')
-  const initialTrips: Trip[] = (tripsData || []).map((t: any) => ({
-    ...t,
-    status: t.status?.toUpperCase(),
-    driver: t.driver ? { ...t.driver, dorm_card_verified: t.driver.dorm_card_verified?.toUpperCase() } : undefined,
-  })) as Trip[];
-
-  // Debug: log distinct status values from DB (remove after confirming)
-  const distinctStatuses = [...new Set((tripsData || []).map((t: any) => t.status))];
-  if (distinctStatuses.length > 0) {
-    console.log('[DEBUG] Trip status values in DB:', distinctStatuses);
-  }
+  // Normalize: convert DB rows using toAppTripDTO
+  const initialTrips: Trip[] = (tripsData || []).map((t: Record<string, unknown>) => toAppTripDTO(t));
 
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-6xl">
@@ -74,7 +70,13 @@ export default async function TripsPage() {
         </div>
       </div>
 
-      <TripsSearchClient initialTrips={initialTrips} currentUserProfile={userProfile} />
+      <TripsSearchClient
+        initialTrips={initialTrips}
+        currentUserProfile={userProfile}
+        initialUniversity={params.university}
+        initialDate={params.date}
+        initialDormArea={params.dormArea}
+      />
     </div>
   );
 }

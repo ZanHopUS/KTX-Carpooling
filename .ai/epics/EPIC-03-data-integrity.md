@@ -6,8 +6,8 @@
 | **Tên** | Data Integrity & Code ↔ DB Alignment |
 | **Ưu tiên** | 3 (Data integrity + đồng bộ code ↔ DB) |
 | **Mức độ** | 🔴 Chặn — mọi epic sau đều phụ thuộc; hiện đang chặn cả "Đăng chuyến" thật |
-| **Trạng thái** | `READY` — PO duyệt mở 2026-09-21 (quyết định A1 khi chốt TASK-001) |
-| **Phụ thuộc** | Q1 giải quyết một phần (PO cung cấp CSV cột `trips` 2026-09-21); còn cần thông tin các bảng khác + quyết định hướng đồng bộ (task đầu tiên của epic) |
+| **Trạng thái** | `IN_PROGRESS` — TASK-002 `DONE`; PO trả lời trọn bộ D-03-01…D-03-11 (2026-09-22) |
+| **Phụ thuộc** | Hướng đồng bộ ĐÃ CHỐT (D-03-01: boundary DTO mapping); còn thiếu dump live cho các bảng còn lại + enum + RLS → TASK-003 |
 
 ---
 
@@ -59,12 +59,14 @@ Chuyển toàn bộ hiểu biết về database từ trạng thái `UNKNOWN` san
 
 | Loại | Nội dung |
 |---|---|
-| ✅ Giải một phần | Q1 — đã có CSV cột `trips` (2026-09-21); còn cần thông tin các bảng còn lại (`trip_requests`, `profiles`, `vehicles`, `routes`, `locations`, `ratings`) |
+| ✅ Giải một phần | Q1 — đã có CSV cột `trips` (2026-09-21); dump còn lại gom vào **TASK-003** (`trip_requests`, `profiles`, `vehicles`, `routes`, `locations`, `ratings`, enum, RLS) |
 | ✅ ĐÃ GIẢI | Q2 — `trip_date` (CSV 2026-09-21; code đang sai) |
-| Cần PO | Q3 `status`/`account_status`, Q4 case enum (giá trị enum `trips.status` vẫn UNKNOWN — D3) |
-| ✅ Giải một phần | Q5 — `ratings` tồn tại, `messages` KHÔNG tồn tại (→ TASK-002); Q7 cưỡng chế xác minh còn mở |
-| Cần PO | **Q10** có áp dụng `NEED_REVIEW`? |
-| Cần PO (mới) | **Hướng đồng bộ** — sửa code theo DB thật (27 cột normalized) hay viết migration đưa DB về thiết kế code? Quyết định kiến trúc, là task đầu tiên của epic |
+| ✅ ĐÃ GIẢI (policy, 2026-09-22) | Q3/D-03-04 — field canonical là field trên **live DB**, không rename/migrate chỉ để khớp code/docs; giá trị cụ thể chờ dump TASK-003 |
+| ✅ ĐÃ GIẢI (policy, 2026-09-22) | Q4/D-03-06 — enum live (values + casing) là canonical, app normalize tại boundary; values chờ dump TASK-003 |
+| ✅ ĐÃ GIẢI | Q5/D5 — `messages` đã được tạo qua TASK-002 (áp dụng + runtime-verified 2026-09-21); `ratings` tồn tại, schema chờ dump |
+| ✅ ĐÃ GIẢI (policy, 2026-09-22) | Q7/D-03-07 — verification bắt buộc cho core carpool actions, không áp cho chức năng chỉ xem; danh sách action chốt bằng evidence/product contract |
+| Cần PO | **Q10** có áp dụng `NEED_REVIEW`? — chưa trả lời |
+| ✅ ĐÃ GIẢI | **Hướng đồng bộ (D-03-01, 2026-09-22)** — **Boundary DTO Mapping**: UI/domain dùng DTO, mapping sang normalized `trips` ở repository/service boundary |
 | Kỹ thuật | Xác nhận RLS thật trước khi tin vào tài liệu |
 
 ---
@@ -86,16 +88,16 @@ Chuyển toàn bộ hiểu biết về database từ trạng thái `UNKNOWN` san
 
 | Task | Tên | Trạng thái |
 |---|---|---|
-| **TASK-002** | Tạo bảng `messages` bằng migration SQL (kèm RLS "chỉ thành viên chuyến") | 🟡 `PROPOSED` — file đã soạn, chờ PO review nội dung (chuyển từ EPIC-01 theo A1) |
-| TASK-00x *(đề xuất — đầu tiên)* | **PO quyết định hướng đồng bộ**: sửa code theo DB thật (27 cột normalized) hay migration đưa DB về thiết kế code | `PROPOSED` — chặn mọi task đồng bộ sau |
-| TASK-00x *(đề xuất)* | Trích xuất schema thật từ Supabase thành `supabase/migrations/0000_baseline.sql` | `PROPOSED` — chờ phần còn lại của Q1 |
-| TASK-00x *(đề xuất)* | Thực thi đồng bộ theo hướng PO chọn (đổi code hoặc viết migration) — sửa "Đăng chuyến" và toàn bộ tầng ghi/đọc `trips` | `PROPOSED` — chờ quyết định hướng |
-| TASK-00x *(đề xuất)* | Chốt & chuẩn hoá tên cột `status`/`account_status` | `PROPOSED` — chờ Q3 |
-| TASK-00x *(đề xuất)* | Chuẩn hoá case enum toàn hệ thống + migration dữ liệu | `PROPOSED` — chờ Q4 (D3) |
-| TASK-00x *(đề xuất)* | Re-verify runtime TASK-001: TC-1…TC-11 + xác nhận "Đăng chuyến" hoạt động end-to-end | `PROPOSED` — điều kiện hoàn thành epic |
+| **TASK-002** | Tạo bảng `messages` bằng migration SQL (kèm RLS "chỉ thành viên chuyến") | ✅ `DONE` — PO đã áp dụng migration, runtime verify PASS (2026-09-21) |
+| **TASK-003** | Thu thập dump schema/enum/RLS live còn thiếu + thiết lập baseline contract trong repo (D-03-11) | ✅ `DONE` — Baseline contract tại `docs/database/live-schema-baseline.md` |
+| **TASK-004** | **Trips boundary DTO mapping** — đồng bộ toàn bộ write/read path `trips` theo D-03-01; "Đăng chuyến" chạy end-to-end | ✅ `DONE` — Triển khai `tripMapper.ts` & cập nhật route Đăng chuyến (2026-09-22) |
+| **TASK-005** | Tách platform role (`USER`/`ADMIN`) khỏi capability driver/passenger + Cưỡng chế xác minh thẻ KTX (D-03-05, D-03-07) | ✅ `DONE` — Triển khai `TASK-005.md` & kiểm tra phân quyền (2026-09-26) |
+| TASK-006 *(đề xuất)* | Chuẩn hoá enum tại boundary theo live values + casing (D-03-06) | `DONE` (Tích hợp trong DTO Mappers) |
+| TASK-007 *(đề xuất)* | Ratings canonical schema (D-03-03) + sửa `submitRatingAction` (chống trùng, cập nhật `profiles.rating`) | ✅ `DONE` (Sửa `chat/actions.ts` dùng cột `score` & tự tính average_rating) |
+| TASK-008 *(đề xuất)* | Cưỡng chế verification cho core carpool actions theo D-03-07 | ✅ `DONE` (Tích hợp trong TASK-005) |
+| TASK-00x *(đề xuất)* | Re-verify runtime TASK-001: TC-1…TC-11 + "Đăng chuyến" end-to-end (D-03-08) | `PROPOSED` — điều kiện hoàn thành epic |
 | TASK-00x *(đề xuất)* | Gộp 2 bucket thẻ KTX về 1 bucket private + signed URL | `PROPOSED` |
 | TASK-00x *(đề xuất)* | Bỏ đường tạo URL ảnh giả, xử lý lỗi upload đúng cách | `PROPOSED` |
-| TASK-00x *(đề xuất)* | Review & tài liệu hoá RLS thật | `PROPOSED` — chờ Q1 |
 
 ---
 
@@ -114,4 +116,10 @@ Chuyển toàn bộ hiểu biết về database từ trạng thái `UNKNOWN` san
 - `locations` và `routes` đã tồn tại và có dữ liệu thật; schema chi tiết vẫn cần dump.
 - `ratings` đã tồn tại nhưng chưa có dump cột; `messages` không tồn tại trên DB DEV.
 - `trip_requests`, enum, RLS và nhiều bảng mở rộng vẫn cần bằng chứng trực tiếp; không nâng nhãn chỉ dựa trên docs.
-- TASK-002 tạo `messages` là một phương án `PROPOSED`, không được xem là đã áp dụng và không thể thay thế quyết định baseline `trips`.
+- ~~TASK-002 tạo `messages` là một phương án `PROPOSED`~~ → **Cập nhật 2026-09-21/22**: TASK-002 `DONE` — migration đã được PO áp dụng, RLS runtime-verified (xem `EXECUTION-REPORT-TASK-002.md` §7).
+
+### Cập nhật 2026-09-22
+
+- PO trả lời trọn bộ D-03-01…D-03-11 — chi tiết và hệ quả orchestration: `EPIC-03-PO-DECISION-PACK.md` §10.
+- Hướng đồng bộ chốt **Boundary DTO Mapping** cho `trips`; live DB là source of truth cho schema/enum/RLS (D-03-02, 03, 04, 06, 11).
+- **TASK-003 (`READY`)** là điều kiện READY của mọi task đồng bộ code: policy đã chốt không nâng nhãn `UNKNOWN` → `ACTUAL` — bằng chứng phải đến từ dump live.

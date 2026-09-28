@@ -23,21 +23,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-gray-900">
-      <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-6">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50/50 text-slate-800 font-sans selection:bg-blue-100 selection:text-blue-700">
+      <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-3xl border border-slate-200/80 shadow-xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 mb-2 group">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-              K
+          <Link href="/" className="inline-flex items-center gap-3 mb-1 group">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-blue-50 border border-blue-100 p-0.5 flex items-center justify-center shrink-0">
+              <img src="/Logo.png" alt="KTX Carpooling Logo" className="w-full h-full object-contain" />
             </div>
             <div className="text-left">
-              <div className="font-bold text-gray-900 leading-tight">KTX Carpooling</div>
-              <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">ĐHQG-HCM</div>
+              <div className="font-black text-slate-900 leading-tight group-hover:text-blue-600 transition">KTX Carpooling</div>
+              <div className="text-[10px] font-medium text-slate-500 tracking-normal">ĐHQG-HCM</div>
             </div>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Đăng nhập tài khoản</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Đăng nhập tài khoản</h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
             Kết nối sinh viên KTX Khu A &amp; Khu B đi học cùng tuyến đường
           </p>
         </div>

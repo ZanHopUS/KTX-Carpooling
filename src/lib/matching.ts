@@ -6,6 +6,7 @@ export interface MatchingCriteria {
   passenger_university: string;
   passenger_campus?: string;
   passenger_building?: string;
+  dorm_area?: string;
   passenger_profile?: UserProfile;
 }
 
@@ -99,9 +100,19 @@ export function calculateMatchScore(trip: Trip, criteria: MatchingCriteria): Mat
     time_score = 10;
   }
 
+  // Pickup Location Score (+10 if same dorm area)
+  if (
+    criteria.dorm_area &&
+    trip.pickup_area &&
+    trip.pickup_area.toLowerCase() === criteria.dorm_area.toLowerCase()
+  ) {
+    pickup_score = 10;
+  }
+
   // Driver Reputation (+10 for rating >= 4.5)
-  if (trip.driver && trip.driver.rating >= 4.5) {
-    reputation_score += 10;
+  const driverRating = trip.driver?.average_rating ?? trip.driver?.rating ?? 0;
+  if (driverRating >= 4.5) {
+    reputation_score = 10;
   }
 
   const match_score =

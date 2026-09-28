@@ -39,6 +39,116 @@ export const UNIVERSITIES = [
     name: 'Trường ĐH Kinh tế - Luật (VNUHCM-UEL)',
     campuses: ['Cơ sở chính (Linh Trung, TP. Thủ Đức)'],
   },
+  {
+    id: 'HCMUTE',
+    name: 'Trường ĐH Sư phạm Kỹ thuật TP.HCM (HCMUTE)',
+    campuses: ['Cơ sở Võ Văn Ngân, TP. Thủ Đức'],
+  },
+  {
+    id: 'NLU',
+    name: 'Trường ĐH Nông Lâm TP.HCM (NLU)',
+    campuses: ['Cơ sở Linh Trung, TP. Thủ Đức'],
+  },
+  {
+    id: 'UMP',
+    name: 'Trường ĐH Y Dược TP.HCM (UMP)',
+    campuses: ['Cơ sở Hồng Bàng, Q.5'],
+  },
+  {
+    id: 'UEH',
+    name: 'Trường ĐH Kinh tế TP.HCM (UEH)',
+    campuses: ['Cơ sở Nguyễn Đình Chiểu & Nguyễn Tri Phương'],
+  },
+  {
+    id: 'FPTU',
+    name: 'Trường ĐH FPT TP.HCM (FPTU)',
+    campuses: ['Khu Công nghệ cao, TP. Thủ Đức'],
+  },
+  {
+    id: 'HUTECH',
+    name: 'Trường ĐH Công nghệ TP.HCM (HUTECH)',
+    campuses: ['Cơ sở Điện Biên Phủ & KCNC'],
+  },
+  {
+    id: 'NTTU',
+    name: 'Trường ĐH Nguyễn Tất Thành (NTTU)',
+    campuses: ['Cơ sở Q.4 & KCNC'],
+  },
+  {
+    id: 'TDTU',
+    name: 'Trường ĐH Tôn Đức Thắng (TDTU)',
+    campuses: ['Cơ sở Tân Phong, Q.7'],
+  },
+  {
+    id: 'UEF',
+    name: 'Trường ĐH Kinh tế - Tài chính TP.HCM (UEF)',
+    campuses: ['Cơ sở Điện Biên Phủ'],
+  },
+  {
+    id: 'VLU',
+    name: 'Trường ĐH Văn Lang (VLU)',
+    campuses: ['Cơ sở 3 Gò Vấp'],
+  },
+  {
+    id: 'HCMUE',
+    name: 'Trường ĐH Sư phạm TP.HCM (HCMUE)',
+    campuses: ['Cơ sở An Dương Vương, Q.5'],
+  },
+  {
+    id: 'ULAW',
+    name: 'Trường ĐH Luật TP.HCM (ULAW)',
+    campuses: ['Cơ sở Nguyễn Tất Thành, Q.4'],
+  },
+  {
+    id: 'UTH',
+    name: 'Trường ĐH Giao thông Vận tải TP.HCM (UTH)',
+    campuses: ['Cơ sở Bình Thạnh'],
+  },
+  {
+    id: 'OU',
+    name: 'Trường ĐH Mở TP.HCM (OU)',
+    campuses: ['Cơ sở Võ Văn Tần, Q.3'],
+  },
+  {
+    id: 'HUIT',
+    name: 'Trường ĐH Công Thương TP.HCM (HUIT)',
+    campuses: ['Cơ sở Lê Trọng Tấn, Tân Phú'],
+  },
+  {
+    id: 'HUB',
+    name: 'Trường ĐH Ngân hàng TP.HCM (HUB)',
+    campuses: ['Cơ sở Hoàng Diệu 2, TP. Thủ Đức'],
+  },
+  {
+    id: 'SGU',
+    name: 'Trường ĐH Sài Gòn (SGU)',
+    campuses: ['Cơ sở An Dương Vương, Q.5'],
+  },
+  {
+    id: 'PNTU',
+    name: 'Trường ĐH Y Khoa Phạm Ngọc Thạch (PNTU)',
+    campuses: ['Cơ sở Dương Quang Trung, Q.10'],
+  },
+  {
+    id: 'VGU',
+    name: 'Trường ĐH Việt Đức (VGU)',
+    campuses: ['Khuôn viên Bến Cát'],
+  },
+  {
+    id: 'TDMU',
+    name: 'Trường ĐH Thủ Dầu Một (TDMU)',
+    campuses: ['TP. Thủ Dầu Một'],
+  },
+  {
+    id: 'BDU',
+    name: 'Trường ĐH Bình Dương (BDU)',
+    campuses: ['TP. Thủ Dầu Một'],
+  },
+  {
+    id: 'EIU',
+    name: 'Trường ĐH Quốc tế Miền Đông (EIU)',
+    campuses: ['TP. Thủ Dầu Một'],
+  },
 ] as const;
 
 export const TRIP_STATUS = {

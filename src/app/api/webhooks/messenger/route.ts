@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     if (body.object === 'page') {
-      body.entry?.forEach((entry: any) => {
-        const webhookEvent = entry.messaging?.[0];
+      body.entry?.forEach((entry: Record<string, unknown>) => {
+        const webhookEvent = (entry as { messaging?: Array<unknown> }).messaging?.[0];
         console.log('Received Messenger Webhook Event:', webhookEvent);
       });
 

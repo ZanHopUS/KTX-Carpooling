@@ -17,6 +17,7 @@ export interface UserProfile {
   dorm_card_verified: VerificationStatus;
   dorm_card_url?: string;
   rating: number;
+  average_rating?: number;
   completed_trip_count: number;
   cancelled_trip_count: number;
   role: UserRole;

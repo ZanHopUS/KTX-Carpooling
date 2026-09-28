@@ -10,15 +10,24 @@ import { formatVND } from '@/lib/pricing';
 interface TripsSearchClientProps {
   initialTrips: Trip[];
   currentUserProfile?: UserProfile | null;
+  initialUniversity?: string;
+  initialDate?: string;
+  initialDormArea?: string;
 }
 
-export default function TripsSearchClient({ initialTrips, currentUserProfile }: TripsSearchClientProps) {
+export default function TripsSearchClient({
+  initialTrips,
+  currentUserProfile,
+  initialUniversity,
+  initialDate,
+  initialDormArea,
+}: TripsSearchClientProps) {
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const [date, setDate] = useState<string>(todayStr);
+  const [date, setDate] = useState<string>(initialDate || todayStr);
   const [pickupTime, setPickupTime] = useState<string>('07:00');
-  const [university, setUniversity] = useState<string>(currentUserProfile?.university || 'HCMUS');
-  const [dormArea, setDormArea] = useState<string>(currentUserProfile?.dorm_area || 'KHU_B');
+  const [university, setUniversity] = useState<string>(initialUniversity || currentUserProfile?.university || 'HCMUS');
+  const [dormArea, setDormArea] = useState<string>(initialDormArea || currentUserProfile?.dorm_area || 'KHU_B');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   // Perform Matching Calculation
@@ -26,6 +35,7 @@ export default function TripsSearchClient({ initialTrips, currentUserProfile }: 
     date,
     pickup_time: pickupTime,
     passenger_university: university,
+    dorm_area: dormArea,
     passenger_profile: currentUserProfile || undefined,
   };
 
@@ -44,23 +54,26 @@ export default function TripsSearchClient({ initialTrips, currentUserProfile }: 
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
+      {/* Header & Filter Card */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tìm chuyến xe đi học</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Danh sách các chuyến xe máy ghép cùng tuyến đường từ KTX Khu A &amp; Khu B
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
+              <span>🔍 Ghép xe sinh viên KTX</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Tìm chuyến xe đi học</h1>
+            <p className="text-sm text-slate-500 font-medium">
+              Danh sách các chuyến xe máy ghép cùng tuyến đường từ KTX Khu A &amp; Khu B ĐHQG-HCM
             </p>
           </div>
           <Link
             href="/trips/create"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition shadow-sm self-start md:self-auto"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-blue-500/20 transition self-start md:self-auto"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            <span>Đăng chuyến xe</span>
+            <span>+ Đăng chuyến xe</span>
           </Link>
         </div>
 

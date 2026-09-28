@@ -32,10 +32,11 @@ export async function POST(request: Request) {
 
     // Update user profile status
     await supabase
-      .from('users')
+      .from('profiles')
       .update({
         dorm_card_url: filePath,
         dorm_card_verified: 'PENDING',
+        verification_status: 'pending',
       })
       .eq('id', user.id);
 

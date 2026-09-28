@@ -1,6 +1,24 @@
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect('/login');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || (profile.role?.toUpperCase() !== 'ADMIN' && profile.role !== 'admin')) {
+    redirect('/dashboard');
+  }
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Trang Quản trị KTX Carpooling</h1>

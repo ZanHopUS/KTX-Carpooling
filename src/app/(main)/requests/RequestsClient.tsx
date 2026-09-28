@@ -35,31 +35,31 @@ export default function RequestsClient({ sentRequests, receivedRequests }: Reque
   return (
     <div className="space-y-6">
       {/* Navigation Tabs */}
-      <div className="flex border-b border-gray-200 text-sm font-semibold">
+      <div className="flex border-b border-slate-200 text-sm font-bold">
         <button
           onClick={() => setActiveTab('received')}
-          className={`pb-3 px-4 transition border-b-2 flex items-center gap-2 ${
+          className={`pb-3.5 px-5 transition border-b-2 flex items-center gap-2 text-xs sm:text-sm ${
             activeTab === 'received'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'border-blue-600 text-blue-600 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold'
           }`}
         >
-          <span>Yêu cầu nhận được (Tài xế)</span>
-          <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+          <span>📥 Yêu cầu nhận được (Tài xế)</span>
+          <span className="px-2.5 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-bold">
             {receivedRequests.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('sent')}
-          className={`pb-3 px-4 transition border-b-2 flex items-center gap-2 ${
+          className={`pb-3.5 px-5 transition border-b-2 flex items-center gap-2 text-xs sm:text-sm ${
             activeTab === 'sent'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'border-blue-600 text-blue-600 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold'
           }`}
         >
-          <span>Yêu cầu đã gửi (Hành khách)</span>
-          <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
+          <span>📤 Yêu cầu đã gửi (Hành khách)</span>
+          <span className="px-2.5 py-0.5 text-xs rounded-full bg-slate-100 text-slate-700 font-bold">
             {sentRequests.length}
           </span>
         </button>
@@ -69,8 +69,12 @@ export default function RequestsClient({ sentRequests, receivedRequests }: Reque
       {activeTab === 'received' && (
         <div className="space-y-4">
           {receivedRequests.length === 0 ? (
-            <div className="p-10 text-center bg-white rounded-2xl border border-gray-200 text-gray-500 text-sm">
-              Bạn chưa nhận được yêu cầu ghép xe nào từ hành khách.
+            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/80 shadow-xs text-slate-500 text-xs sm:text-sm font-medium space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-xl font-bold">
+                📥
+              </div>
+              <p className="font-extrabold text-slate-900 text-base">Chưa có yêu cầu nhận được nào</p>
+              <p>Bạn chưa nhận được lời nhắn ghép xe nào từ sinh viên khác.</p>
             </div>
           ) : (
             receivedRequests.map((req) => {
@@ -80,7 +84,7 @@ export default function RequestsClient({ sentRequests, receivedRequests }: Reque
               return (
                 <div
                   key={req.id}
-                  className="p-5 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-4"
+                  className="p-6 bg-white rounded-3xl border border-slate-200/80 shadow-xs space-y-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -89,24 +93,24 @@ export default function RequestsClient({ sentRequests, receivedRequests }: Reque
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="font-bold text-gray-900 text-sm">
+                          <h4 className="font-bold text-slate-900 text-sm">
                             {passenger?.full_name || 'Hành khách'}
                           </h4>
                           {passenger?.dorm_card_verified === 'VERIFIED' && (
-                            <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                            <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
                               ✓ Đã xác minh
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">{passenger?.university} • Tòa {passenger?.dorm_building}</p>
+                        <p className="text-xs text-slate-500 font-medium">{passenger?.university} • Tòa {passenger?.dorm_building}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         req.status === 'PENDING' ? 'bg-amber-50 text-amber-800 border border-amber-200' :
                         req.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
-                        'bg-gray-100 text-gray-600'
+                        'bg-slate-100 text-slate-600'
                       }`}>
                         {req.status === 'PENDING' && '⌛ Chờ duyệt'}
                         {req.status === 'ACCEPTED' && '✅ Đã chấp nhận'}
@@ -117,25 +121,25 @@ export default function RequestsClient({ sentRequests, receivedRequests }: Reque
                   </div>
 
                   {trip && (
-                    <div className="p-3 bg-gray-50 rounded-xl text-xs space-y-1 text-gray-700">
+                    <div className="p-3.5 bg-slate-50 rounded-2xl text-xs space-y-1 text-slate-700 font-medium border border-slate-100">
                       <p>🗓️ <strong>Chuyến đi:</strong> {trip.date} lúc {trip.pickup_time} ({trip.pickup_point} → {trip.destination_university})</p>
-                      <p>⏰ <strong>Giờ hành khách muốn đón:</strong> <span className="font-bold text-blue-600">{req.requested_pickup_time}</span></p>
+                      <p>⏰ <strong>Giờ hành khách muốn đón:</strong> <span className="font-extrabold text-blue-600">{req.requested_pickup_time}</span></p>
                     </div>
                   )}
 
                   {req.status === 'PENDING' && (
-                    <div className="flex gap-2 pt-2 border-t border-gray-100">
+                    <div className="flex gap-2 pt-2 border-t border-slate-100">
                       <button
                         onClick={() => handleAccept(req.id, req.trip_id)}
                         disabled={loadingId === req.id}
-                        className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition disabled:opacity-50"
+                        className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition disabled:opacity-50"
                       >
                         {loadingId === req.id ? 'Đang xử lý...' : 'Chấp nhận ghép chuyến'}
                       </button>
                       <button
                         onClick={() => handleReject(req.id, req.trip_id)}
                         disabled={loadingId === req.id}
-                        className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition"
+                        className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
                       >
                         Từ chối
                       </button>
@@ -143,10 +147,10 @@ export default function RequestsClient({ sentRequests, receivedRequests }: Reque
                   )}
 
                   {req.status === 'ACCEPTED' && (
-                    <div className="pt-2 border-t border-gray-100 flex justify-end">
+                    <div className="pt-2 border-t border-slate-100 flex justify-end">
                       <Link
                         href={`/trips/${req.trip_id}/chat`}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition"
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition"
                       >
                         Mở phòng nhắn tin →
                       </Link>

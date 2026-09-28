@@ -84,15 +84,40 @@ export async function submitRatingAction(tripId: string, toUserId: string, stars
 
   if (!user) return { error: 'Chưa đăng nhập.' };
 
+  if (user.id === toUserId) {
+    return { error: 'Bạn không thể tự đánh giá chính mình.' };
+  }
+
   const { error } = await supabase.from('ratings').insert({
     trip_id: tripId,
     from_user_id: user.id,
     to_user_id: toUserId,
-    stars,
+    score: stars,
     comment: comment?.trim() || null,
   });
 
   if (error) return { error: error.message };
+
+  // Calculate and update user average rating on profile
+  try {
+    const { data: ratingsData } = await supabase
+      .from('ratings')
+      .select('score')
+      .eq('to_user_id', toUserId);
+
+    if (ratingsData && ratingsData.length > 0) {
+      const avg = ratingsData.reduce((acc, r) => acc + (r.score || 0), 0) / ratingsData.length;
+      await supabase
+        .from('profiles')
+        .update({
+          average_rating: Number(avg.toFixed(1)),
+          rating_count: ratingsData.length,
+        })
+        .eq('id', toUserId);
+    }
+  } catch (e) {
+    console.error('Update rating stats error:', e);
+  }
 
   revalidatePath(`/trips/${tripId}/chat`);
   return { success: true };

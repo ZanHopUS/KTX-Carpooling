@@ -30,7 +30,7 @@ export default async function RequestsPage() {
     .select('id')
     .eq('driver_id', user.id);
 
-  let receivedData: any[] = [];
+  let receivedData: TripRequest[] = [];
   if (myTrips && myTrips.length > 0) {
     const tripIds = myTrips.map((t) => t.id);
     const { data: recData } = await supabase

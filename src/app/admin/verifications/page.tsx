@@ -11,6 +11,16 @@ export default async function AdminVerificationsPage() {
     redirect('/login');
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || (profile.role?.toUpperCase() !== 'ADMIN' && profile.role !== 'admin')) {
+    redirect('/dashboard');
+  }
+
   // Fetch profiles with PENDING dorm_card_verified
   const { data: pendingData } = await supabase
     .from('profiles')

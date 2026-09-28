@@ -45,6 +45,12 @@ export async function createTripRequestAction(formData: FormData) {
     .eq('id', user.id)
     .single();
 
+  // Verification Enforcement (D-03-07): Passenger must be verified before requesting trips
+  const isVerified = passengerProfile?.dorm_card_verified === 'VERIFIED' || passengerProfile?.verification_status === 'verified';
+  if (!isVerified) {
+    return { error: 'Bạn cần xác minh Thẻ KTX chính chủ trước khi gửi yêu cầu ghép xe. Vui lòng tải lên thẻ KTX tại trang Cá nhân.' };
+  }
+
   // 2. Calculate match score
   const matchResult = calculateMatchScore(trip, {
     date: trip.date,

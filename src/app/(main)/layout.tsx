@@ -28,48 +28,54 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   ];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-page)' }}>
-      {/* ── Top Navigation ── */}
-      <header
-        className="sticky top-0 z-50 shadow-sm"
-        style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-default)' }}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2 shrink-0 no-underline mr-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold select-none">K</div>
+    <div className="min-h-screen flex flex-col bg-slate-50/50 text-slate-800 font-sans selection:bg-blue-100 selection:text-blue-700">
+      {/* ── Top Navigation (Glassmorphism matching Homepage) ── */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          {/* Brand Logo & Name */}
+          <Link href="/dashboard" className="flex items-center gap-3 shrink-0 group no-underline">
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-blue-50 border border-blue-100 p-0.5 flex items-center justify-center shrink-0">
+              <img
+                src="/Logo.png"
+                alt="KTX Carpooling Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="hidden sm:block leading-none">
-              <p className="text-sm font-bold text-gray-900">KTX Carpooling</p>
-              <p className="text-[10px] text-gray-400">ĐHQG-HCM</p>
+              <span className="font-black text-base tracking-tight text-slate-900 leading-none block group-hover:text-blue-600 transition-colors">
+                KTX Carpooling
+              </span>
+              <span className="text-[10px] font-medium text-slate-500 tracking-normal block mt-0.5">
+                ĐHQG-HCM
+              </span>
             </div>
           </Link>
 
-          {/* Nav */}
-          <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
+          {/* Navigation */}
+          <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
+                className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          {/* User area */}
+          {/* User Area */}
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/profile"
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-              title="Hồ sơ của tôi"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 transition"
+              title="Hồ sơ cá nhân"
             >
-              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold select-none">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-xs">
                 {initials}
               </div>
               {fullName && (
-                <span className="hidden sm:block text-xs font-medium text-gray-700 max-w-[110px] truncate">
+                <span className="hidden sm:block text-xs font-bold text-slate-800 max-w-[110px] truncate">
                   {fullName}
                 </span>
               )}
@@ -78,8 +84,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-red-50"
-                style={{ color: 'var(--text-muted)' }}
+                className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 transition"
               >
                 Đăng xuất
               </button>
@@ -93,9 +98,42 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         {children}
       </main>
 
+      {/* ── Footer matching Homepage ── */}
+      <footer className="bg-slate-900 text-slate-300 py-8 border-t border-slate-800 mt-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0">
+                <img src="/Logo.png" alt="KTX Carpooling" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <span className="font-black text-white text-sm tracking-tight block">
+                  KTX Carpooling
+                </span>
+                <span className="text-[11px] text-slate-400 block">
+                  Nền tảng chia sẻ chuyến đi sinh viên KTX ĐHQG-HCM
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-5 text-xs font-semibold text-slate-400">
+              <Link href="/dashboard" className="hover:text-white transition">Tổng quan</Link>
+              <Link href="/trips" className="hover:text-white transition">Tìm chuyến</Link>
+              <Link href="/trips/create" className="hover:text-white transition">Đăng chuyến</Link>
+              <Link href="/requests" className="hover:text-white transition">Yêu cầu</Link>
+              <Link href="/profile" className="hover:text-white transition">Hồ sơ</Link>
+            </div>
+          </div>
+
+          <div className="text-center text-[11px] text-slate-500">
+            © {new Date().getFullYear()} KTX Carpooling. Phát triển dành riêng cho sinh viên Ký túc xá Khu A & Khu B ĐHQG-HCM.
+          </div>
+        </div>
+      </footer>
+
       {/* ── Mobile Bottom Nav ── */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-white"
-        style={{ borderColor: 'var(--border-default)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-white/95 backdrop-blur-md border-slate-200"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="grid grid-cols-4 h-14">
           {[
             { href: '/dashboard', icon: (
@@ -116,7 +154,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 </svg>), label: 'Hồ sơ' },
           ].map((item) => (
             <Link key={item.href} href={item.href}
-              className="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-blue-600 transition-colors">
+              className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-600 transition-colors">
               {item.icon}
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>

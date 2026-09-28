@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
 import { parseNaturalLanguageQuery } from '@/lib/ai';
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Bạn cần đăng nhập để sử dụng tính năng tìm kiếm AI.' }, { status: 401 });
+    }
     const body = await req.json();
     const query = body?.query;
 

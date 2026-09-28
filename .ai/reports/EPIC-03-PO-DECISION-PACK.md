@@ -283,8 +283,26 @@ Blocking: kết luận hoàn thành EPIC-01 và EPIC-03.
 | D-03-10 | Auth/onboarding | Callback rỗng, redirect localhost, API dùng `users` | Chốt production domain và upload flow | EPIC-02 |
 | D-03-11 | Schema/RLS baseline | Live DB là source; repo chưa có full baseline | Chốt mức baseline cần lưu trong repo | EPIC-03 closure |
 
-## PO RESPONSE REQUIRED
+## PO RESPONSE — ĐÃ GIẢI TOÀN BỘ (2026-09-22)
 
-PO cần trả lời các Decision ID trên trước khi Orchestrator tạo hoặc đánh dấu READY cho implementation task tiếp theo.
+PO đã trả lời trọn bộ 11 quyết định. Ghi nhận theo ý PO:
 
-Không có task mới được tạo trong báo cáo này.
+| Decision ID | Quyết định của PO |
+|---|---|
+| D-03-01 | **Trips → Boundary DTO Mapping.** UI/domain dùng DTO phù hợp; mapping sang normalized `trips` nằm ở repository/service boundary. UI không phụ thuộc trực tiếp persistence schema. |
+| D-03-02 | **`trip_requests` → Live DB là canonical.** Application map theo schema thực tế của live DB; không tự chọn column khi chưa có evidence. |
+| D-03-03 | **Ratings → một canonical persistence value.** UI/domain có thể đổi tên hiển thị, nhưng không tự quyết `stars` hay `score` khi chưa có live evidence. |
+| D-03-04 | **Profiles account state → dùng field canonical trên live DB.** Không rename/migrate chỉ để đồng bộ tên với code/docs. |
+| D-03-05 | **Role ≠ Driver/Passenger capability.** `profiles.role` chỉ có platform role `USER` / `ADMIN`; DRIVER / PASSENGER / BOTH không phải platform role, là capability/relationship riêng. |
+| D-03-06 | **Enum → live DB canonical.** Exact enum values + casing trên live DB là source of truth; application normalize tại boundary; không đổi enum chỉ để khớp coding style. |
+| D-03-07 | **Verification → áp dụng cho Core Carpool Actions.** Không tùy tiện bắt verification với chức năng chỉ xem; action cụ thể cần enforcement được xác định bằng evidence/product contract. |
+| D-03-08 | **TASK-001 giữ DONE.** Sau khi trip/request contract đồng bộ thì thực hiện full runtime re-verification; không reopen implementation TASK-001 chỉ vì runtime chưa hoàn tất. |
+| D-03-09 | **Admin lifecycle controlled.** Public registration không tạo ADMIN; admin provision qua controlled mechanism và có documentation. |
+| D-03-10 | **Auth/onboarding configuration-driven.** Không hardcode localhost cho production; domain/configuration quản lý theo môi trường. |
+| D-03-11 | **Schema/RLS → Live DB là source of truth.** Repository cần schema/RLS contract/baseline đủ cho development và verification. |
+
+### Hệ quả orchestration
+
+1. Các quyết định cần live evidence (D-03-02, D-03-03, D-03-04, D-03-06, D-03-11) gom thành **TASK-003** — dump schema/enum/RLS live + baseline contract trong repo. TASK-003 là điều kiện READY của mọi task đồng bộ code.
+2. **TASK-004** (đề xuất): Trips boundary DTO mapping theo D-03-01, dựa trên bằng chứng `trips` đã `ACTUAL` (`database-context.md` §16) + enum values từ TASK-003.
+3. Policy D-03-05, D-03-07, D-03-09, D-03-10 trở thành ràng buộc cho các task EPIC-01/02/04/05 tương ứng. Policy đã chốt **không** nâng nhãn `UNKNOWN` → `ACTUAL` — bằng chứng vẫn phải đến từ dump live (TASK-003).

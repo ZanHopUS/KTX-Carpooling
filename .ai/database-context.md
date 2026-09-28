@@ -150,7 +150,7 @@
 |---|---|---|
 | Quan hệ trip → messages và RLS chỉ thành viên | `docs/database/supabase-structure.md` §§4–5 | `DOCUMENTED`; tài liệu không liệt kê cột |
 | Code đọc/ghi `id`, `trip_id`, `sender_id`, `content`, `created_at` | `chat/page.tsx`, `chat/actions.ts` | `EXPECTED` |
-| Bảng không tồn tại trên live DB DEV | PO kiểm tra Supabase Dashboard (§14) | `ACTUAL` — chat hiện lỗi runtime |
+| ~~Bảng không tồn tại trên live DB DEV~~ → đã được tạo qua migration TASK-002 (PO áp dụng 2026-09-21, RLS runtime-verified) | `EXECUTION-REPORT-TASK-002.md` §7 | `ACTUAL` — chat đã thông về mặt DB |
 
 ---
 
@@ -357,4 +357,44 @@ Phần này là kết luận ưu tiên khi nội dung cũ trong tài liệu mâu
 
 - Mục §14 trước đây ghi `trips` và `trip_requests` là `UNKNOWN`; `trips` đã được nâng lên `ACTUAL` ở §15–§16. `trip_requests` vẫn `UNKNOWN`.
 - Mục §4.1 trước đây coi `date` vs `trip_date` là câu hỏi mở; bằng chứng CSV đã giải quyết: DB dùng `trip_date`, code dùng `date` là sai.
-- Mục §6 đã được xác nhận dứt điểm: `messages` vắng mặt trên DB DEV, không chỉ là chưa kiểm tra.
+- Mục §6 đã được xác nhận dứt điểm: ~~`messages` vắng mặt trên DB DEV~~ → đã được tạo qua TASK-002 (2026-09-21).
+
+---
+
+## 18. Quyết định PO về canonical (2026-09-22) — quy tắc ưu tiên mới
+
+Nguồn: PO trả lời trọn bộ D-03-01…D-03-11 (`.ai/reports/EPIC-03-PO-DECISION-PACK.md` §10). Đây là **quy tắc giải quyết mâu thuẫn** ở tầng database, bổ sung cho source-priority của constitution:
+
+| Quyết định | Nội dung | Ảnh hưởng lên nhãn |
+|---|---|---|
+| D-03-01 | `trips`: UI/domain dùng DTO; mapping sang normalized 27 cột nằm ở repository/service boundary | Write/read path của code sẽ được viết lại theo §16; **không đổi DB** |
+| D-03-02 | `trip_requests`: live DB canonical; không tự chọn column khi chưa có evidence | Schema live vẫn `UNKNOWN` cho đến khi dump TASK-003 |
+| D-03-03 | `ratings`: một canonical persistence value; UI có thể đổi tên hiển thị | `stars` vs `score` không giải được bằng suy luận — chờ dump |
+| D-03-04 | `profiles`: dùng field canonical trên live DB; không rename/migrate chỉ để khớp code/docs | `status` vs `account_status` giải bằng live evidence, không phải code/docs |
+| D-03-05 | `profiles.role` chỉ là platform role `USER`/`ADMIN`; DRIVER/PASSENGER/BOTH là capability/relationship riêng | Registration hiện gửi capability vào `role` = lệch mô hình chốt; cần task tách riêng |
+| D-03-06 | Enum: live values + casing là source of truth; application normalize tại boundary | Bảng §9 giữ nhãn `UNKNOWN` đến khi có dump; không "chuẩn hoá" theo ý code |
+| D-03-11 | Live DB là source of truth; repo cần schema/RLS contract/baseline | Bổ nghĩa nhiệm vụ TASK-003 |
+
+**Lưu ý thực thi:** các quyết định này là **policy, không phải bằng chứng** — không nâng nhãn `UNKNOWN` → `ACTUAL` chỉ vì policy đã chốt. Bằng chứng vẫn phải đến từ dump live (TASK-003).
+
+---
+
+## 19. Cập nhật nhãn trạng thái từ bằng chứng TASK-003 (2026-09-22)
+
+> Nguồn bằng chứng: [`docs/database/evidence-20260922.md`](file:///d:/CNTT/KTX%20Carpooling/ktx-carpooling/docs/database/evidence-20260922.md) do PO xuất trực tiếp từ Supabase DEV SQL Editor.
+
+### 19.1 Danh sách toàn bộ 18 bảng public (`ACTUAL`)
+Tất cả 18 bảng sau đây đã được xác minh **tồn tại 100% trên DB DEV live** kèm RLS `relrowsecurity = true`:
+`admin_actions`, `cancellations`, `contact_logs`, `document_verifications`, `locations`, `messages`, `notifications`, `pricing_rules`, `profiles`, `ratings`, `return_trip_requests`, `route_prices`, `routes`, `trip_reports`, `trip_requests`, `trips`, `vehicles`, `verified_student_records`.
+
+### 19.2 Nâng nhãn Schema & Enum sang `ACTUAL`
+1. **`trips`**: `ACTUAL` — Có tổng cộng **39 cột** (26 cột normalized + 13 cột mở rộng phẳng).
+2. **`profiles`**: `ACTUAL` — Có **22 cột**. Tên cột trạng thái tài khoản chính xác là `account_status`, trạng thái xác minh là `verification_status`, vai trò là `role` (`'user'`, `'admin'`).
+3. **`ratings`**: `ACTUAL` — Có **8 cột**. Cột điểm số thực tế trên DB là **`score`** (CHECK `1 <= score <= 5`), có ràng buộc `UNIQUE (trip_id, from_user_id)`. Code dùng `stars` là sai tên cột.
+4. **`trip_requests`**: `ACTUAL` — Có **9 cột**. Cột trạng thái dùng enum `trip_request_status` (`'pending'`, `'accepted'`, `'rejected'`, `'cancelled'`, `'expired'`).
+5. **`vehicles`**: `ACTUAL` — Có **15 cột**. Phân loại xe dùng enum `vehicle_type` (`'motorbike'`, `'electric_motorbike'`, `'other'`).
+6. **`routes` & `locations`**: `ACTUAL` — `locations` (16 cột), `routes` (14 cột, UNIQUE `start_location_id, destination_location_id, travel_mode`).
+7. **`messages`**: `ACTUAL` — 5 cột, đã xác minh qua migration TASK-002 và runtime test.
+8. **Enum Values**: `ACTUAL` — Toàn bộ 12 enum đều ở dạng **chữ thường (lowercase)** (vd: `'open'`, `'pending'`, `'active'`, `'user'`, `'admin'`). Code gửi chữ HOA là sai enum value.
+9. **RLS & Routines**: `ACTUAL` — Đã thu thập đầy đủ 100% RLS policies cho 18 bảng và xác minh sự tồn tại của 3 hàm DB helper: `is_admin()`, `is_verified_user()`, `can_rate_trip()`.
+

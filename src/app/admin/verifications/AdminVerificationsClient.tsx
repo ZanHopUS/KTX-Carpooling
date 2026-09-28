@@ -28,7 +28,7 @@ export default function AdminVerificationsClient({ pendingUsers }: AdminVerifica
   return (
     <div className="space-y-4">
       {pendingUsers.length === 0 ? (
-        <div className="p-8 text-center bg-slate-50 dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 text-slate-500 text-sm">
+        <div className="p-8 text-center bg-white rounded-3xl border border-slate-200/80 shadow-xs text-slate-500 text-sm font-medium">
           🎉 Hiện không có hồ sơ xác minh thẻ KTX nào đang chờ duyệt.
         </div>
       ) : (
@@ -36,7 +36,7 @@ export default function AdminVerificationsClient({ pendingUsers }: AdminVerifica
           {pendingUsers.map((u) => (
             <div
               key={u.id}
-              className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm space-y-4 flex flex-col justify-between"
+              className="p-6 bg-white rounded-3xl border border-slate-200/80 shadow-xs space-y-4 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center gap-3">

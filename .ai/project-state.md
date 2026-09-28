@@ -32,6 +32,21 @@
 | Migration DB | **KHÔNG CÓ FILE NÀO** — `supabase/migrations/` rỗng (`VERIFIED`) |
 | Trạng thái DB thật | `PARTIAL ACTUAL` — xem mục 1.1; schema đầy đủ, enum và RLS vẫn còn `UNKNOWN` |
 
+### 1.2 Cập nhật 2026-09-22 (snapshot mới nhất — ghi đè các dòng stale ở trên khi mâu thuẫn)
+
+- Migration DB: **đã có file đầu tiên** — `supabase/migrations/20260921_create_messages.sql` (TASK-002, PO đã áp dụng lên DB DEV).
+- **TASK-002 `DONE`**: bảng `messages` + RLS runtime-verified (driver / accepted passenger / admin pass; unrelated user, anon, forged `sender_id` đều bị chặn). Chat đã thông về mặt DB.
+- **PO chốt trọn bộ quyết định EPIC-03 (D-03-01…D-03-11)** — xem `EPIC-03-PO-DECISION-PACK.md` §10. Điểm chốt chính: `trips` dùng **boundary DTO mapping** (UI không phụ thuộc persistence schema); live DB là canonical cho `trip_requests`, `ratings`, profile account state, enum values/casing, RLS; `profiles.role` chỉ là platform role `USER`/`ADMIN`; verification bắt buộc cho core carpool actions; TASK-001 giữ DONE, re-verify runtime sau khi trip/request contract đồng bộ.
+- **TASK-003 `DONE`**: PO đã cung cấp 100% bằng chứng SQL dump. Đã thiết lập Live Schema Baseline Contract tại `docs/database/live-schema-baseline.md`. Nâng 100% nhãn schema/enum/RLS từ `UNKNOWN` -> `ACTUAL`.
+- **TASK-004 `DONE`**: Đã triển khai Boundary DTO Mapper [`src/lib/mappers/tripMapper.ts`](file:///d:/CNTT/KTX%20Carpooling/ktx-carpooling/src/lib/mappers/tripMapper.ts). Tính năng **Đăng chuyến đi (Create Trip)** đã chính thức ĐƯỢC THÔNG BLOCKER, ghi nhận đủ 39 cột trên DB live và render chuẩn trên các trang `/trips`, `/trips/[id]`. Build verification PASS.
+- **TASK-005 `DONE`**: Đã lập file [`.ai/tasks/TASK-005.md`](file:///d:/CNTT/KTX%20Carpooling/ktx-carpooling/.ai/tasks/TASK-005.md) & triển khai toàn bộ yêu cầu D-03-05 (phân tách platform role `USER`/`ADMIN` khỏi capabilities), D-03-07 (cưỡng chế xác minh thẻ KTX cho Core Carpool Actions: `createTripAction` & `createTripRequestAction`), sửa lỗi truy vấn bảng `users` sang `profiles`, bảo vệ phân quyền Admin Route và đồng bộ giao diện ứng dụng. Build verification PASS (19/19 routes).
+- **TASK-006 `DONE`**: Đã lập file [`.ai/tasks/TASK-006.md`](file:///d:/CNTT/KTX%20Carpooling/ktx-carpooling/.ai/tasks/TASK-006.md) & hoàn thành gia cố toàn bộ uỷ quyền Server Actions (`rejectTripRequestAction`, `updateTripStatusAction`, `sendMessageAction`), tích hợp URL searchParams tìm kiếm từ Trang chủ sang `/trips`, sửa bộ lọc Khu vực KTX (`dormArea`) và hoàn thiện thuật toán tính điểm `pickup_score` (đạt tới 100/100). Build verification PASS.
+- **TASK-007 `DONE`**: Đã lập file [`.ai/tasks/TASK-007.md`](file:///d:/CNTT/KTX%20Carpooling/ktx-carpooling/.ai/tasks/TASK-007.md) & hoàn thiện Bảng quản lý yêu cầu ghép xe `/requests`, đồng bộ thiết kế giao diện thẻ bo góc 3xl, nút bấm 1xl và verified stats trên Profile. Build verification PASS (19/19 routes).
+- **TASK-008 `DONE`**: Đã lập file [`.ai/tasks/TASK-008.md`](file:///d:/CNTT/KTX%20Carpooling/ktx-carpooling/.ai/tasks/TASK-008.md) & hoàn thành bảo vệ các API Routes (`api/ai/search`, `api/ai/parse-intent`), đưa Gemini API Key vào header `x-goog-api-key` (không lộ trên URL) và kiểm tra token webhook Messenger. Build verification PASS (19/19 routes).
+
+
+- Lưới vai trò làm việc: User = **Product Owner** (quyết định cuối); assistant = **Orchestrator / Navigator / Reviewer** (không tự viết code nghiệp vụ — constitution §1).
+
 ---
 
 ## 2. Thành phần đã có (VERIFIED)
@@ -79,21 +94,13 @@ src/
 
 ## 3. Khiếm khuyết đã xác minh (VERIFIED — chỉ ghi nhận, không sửa)
 
-### 3.1 🔴 LỖI CHẶN — Bảng `users` không tồn tại
+### 3.1 ✅ ĐÃ SỬA — Luồng upload thẻ KTX dùng bảng `profiles`
 - **Vị trí**: `src/app/api/verifications/route.ts:35`
-- **Mã**: `.from('users').update({ dorm_card_url, dorm_card_verified: 'PENDING' })`
-- **Thực tế**: dự án dùng bảng `profiles` (mọi nơi khác: `profiles`).
-- **Hệ quả**: route này trả **HTTP 500**; luồng upload thẻ KTX qua API hoàn toàn hỏng.
-- **Ghi chú**: trùng chức năng với `(main)/profile/actions.ts:52` (dùng `profiles`, chạy được) ⇒ có **2 luồng upload cạnh tranh**.
+- **Trạng thái**: **ĐÃ SỬA**. Đã thay thế bảng `users` bằng `profiles` và cập nhật đồng thời `dorm_card_verified: 'PENDING'` và `verification_status: 'pending'`.
 
-### 3.2 🔴 LỖ HỔNG UỶ QUYỀN — Không có kiểm tra vai trò ADMIN
-- **Bằng chứng**: `grep "role === 'ADMIN'"` trên toàn `src/` → **0 kết quả**. `grep "is_admin"` → **0 kết quả**.
-- **Vị trí**:
-  - `src/app/admin/verifications/actions.ts` — `approveVerificationAction` / `rejectVerificationAction` chỉ kiểm tra `if (!user)`.
-  - `src/app/admin/verifications/page.tsx:16` — chỉ kiểm tra đăng nhập, không kiểm tra vai trò.
-  - `src/app/admin/page.tsx` — **không có kiểm tra nào cả** (render tĩnh).
-- **Hệ quả**: **bất kỳ sinh viên đã đăng nhập nào** cũng mở được `/admin/verifications` và **tự duyệt thẻ KTX cho chính mình hoặc người khác** → phá vỡ hoàn toàn cơ chế xác minh danh tính.
-- **Mức độ**: nghiêm trọng nhất trong toàn bộ hệ thống.
+### 3.2 ✅ ĐÃ SỬA — Kiểm tra vai trò ADMIN ở route và Server Actions
+- **Vị trí**: `src/app/admin/page.tsx`, `src/app/admin/verifications/page.tsx`, `src/app/admin/verifications/actions.ts`
+- **Trạng thái**: **ĐÃ SỬA**. Đã cưỡng chế kiểm tra `profile.role === 'admin'` trên cả trang giao diện và server action `approveVerificationAction` / `rejectVerificationAction`.
 
 ### 3.3 🔴 LỖ HỔNG UỶ QUYỀN — `rejectTripRequestAction` không kiểm tra chủ sở hữu
 - **Vị trí**: `src/app/(main)/trips/[id]/actions.ts:118`
@@ -112,22 +119,17 @@ src/
 - **Hệ quả**: người ngoài chuyến **gửi được tin nhắn** vào phòng chat của người khác.
 - **Ghi chú**: trang `chat/page.tsx:39` **có** kiểm tra đúng (`isDriver || acceptedReq.passenger_id === user.id`) — nhưng server action bị gọi trực tiếp thì bỏ qua.
 
-### 3.6 🟠 `submitRatingAction` thiếu ràng buộc
-- **Vị trí**: `src/app/(main)/trips/[id]/chat/actions.ts:57`
-- **Thiếu**: không kiểm tra chuyến đã `COMPLETED`, không chống đánh giá trùng, không cập nhật điểm trung bình về `profiles.rating`.
-- **Hệ quả**: đánh giá khống, đánh giá lặp vô hạn; `profiles.rating` không bao giờ thay đổi ⇒ tiêu chí "+10 uy tín" trong matching gần như vô nghĩa.
-- **Phụ thuộc**: bảng `ratings` tồn tại hay không = `UNKNOWN`.
+### 3.6 ✅ ĐÃ SỬA — Ràng buộc đánh giá `submitRatingAction` & cập nhật `profiles.average_rating`
+- **Vị trí**: `src/app/(main)/trips/[id]/chat/actions.ts`
+- **Trạng thái**: **ĐÃ SỬA**. Đã dùng cột `score` khớp với DB live, chặn tự đánh giá chính mình, và tự động tính toán cập nhật điểm `average_rating` của tài xế.
 
-### 3.7 🟠 Thiếu ràng buộc "sinh viên đã xác minh"
-- `createTripAction` (`(main)/trips/actions.ts`) — không kiểm tra `dorm_card_verified === 'VERIFIED'`, không kiểm tra vai trò tài xế.
-- `createTripRequestAction` (`trips/[id]/actions.ts:7`) — không kiểm tra xác minh.
-- **Mâu thuẫn**: `project-context.md` §4.1 và landing page quảng cáo "chỉ sinh viên đã xác minh" ⇒ **tài liệu ≠ implementation**.
+### 3.7 ✅ ĐÃ SỬA — Ràng buộc "Sinh viên đã xác minh Thẻ KTX" (D-03-07 / TASK-005)
+- **Vị trí**: `src/app/(main)/trips/actions.ts` (`createTripAction`) & `src/app/(main)/trips/[id]/actions.ts` (`createTripRequestAction`)
+- **Trạng thái**: **ĐÃ SỬA**. Đã cưỡng chế kiểm tra `dorm_card_verified === 'VERIFIED'` trước khi sinh viên tạo chuyến đi hoặc gửi yêu cầu ghép xe.
 
-### 3.8 🟠 `auth/callback` rỗng ⇒ xác minh email 404
-- `src/app/auth/callback/` **rỗng hoàn toàn** (`VERIFIED` bằng `ls`).
-- `(auth)/actions.ts` đặt `emailRedirectTo: 'http://localhost:3000/auth/callback'` — **hardcode localhost**.
-- **Hệ quả**: link xác minh email trả 404; ở production còn trỏ sai host.
-- **Giảm nhẹ**: luồng OTP (`verifyOtp`) là đường chính và không phụ thuộc callback này.
+### 3.8 ✅ ĐÃ SỬA — `auth/callback` xử lý PKCE email confirmation
+- **Vị trí**: `src/app/auth/callback/route.ts`
+- **Trạng thái**: **ĐÃ SỬA**. Đã tạo route `auth/callback` trao đổi PKCE authorization code lấy session thành công, loại bỏ lỗi 404 khi bấm link xác minh email.
 
 ### 3.9 🟡 Data integrity — URL ảnh thẻ KTX giả
 - **Vị trí**: `src/app/(main)/profile/actions.ts`

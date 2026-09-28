@@ -1,0 +1,283 @@
+{
+  "meta": {
+    "url": "https://<ref>.supabase.co",
+    "when": "2026-09-22T10:35:53.788Z",
+    "mode": "GET-only anon probe"
+  },
+  "tables": {
+    "profiles": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "trips": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "trip_requests": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "messages": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "ratings": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "locations": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "routes": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "vehicles": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "trip_reports": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    },
+    "notifications": {
+      "status": 200,
+      "code": null,
+      "message": null,
+      "readable": true,
+      "rows_seen": 0,
+      "row_keys": null
+    }
+  },
+  "columns": {
+    "profiles": {
+      "id": "PRESENT",
+      "email": "PRESENT",
+      "full_name": "PRESENT",
+      "phone": "PRESENT",
+      "university": "PRESENT",
+      "student_id": "PRESENT",
+      "dorm_area": "PRESENT",
+      "dorm_building": "PRESENT",
+      "dorm_card_url": "code:42703",
+      "dorm_card_verified": "code:42703",
+      "role": "PRESENT",
+      "rating": "code:42703",
+      "average_rating": "PRESENT",
+      "rating_count": "PRESENT",
+      "completed_trip_count": "PRESENT",
+      "cancelled_trip_count": "PRESENT",
+      "email_verified": "code:42703",
+      "status": "code:42703",
+      "account_status": "PRESENT",
+      "verification_note": "code:42703",
+      "verification_status": "PRESENT",
+      "school": "code:42703",
+      "date_of_birth": "PRESENT",
+      "avatar_url": "PRESENT",
+      "messenger_id": "code:42703",
+      "created_at": "PRESENT",
+      "updated_at": "PRESENT"
+    },
+    "trips": {
+      "id": "PRESENT",
+      "driver_id": "PRESENT",
+      "vehicle_id": "PRESENT",
+      "route_id": "PRESENT",
+      "pickup_location_id": "PRESENT",
+      "trip_date": "PRESENT",
+      "date": "PRESENT",
+      "departure_time": "PRESENT",
+      "class_start_time": "PRESENT",
+      "class_end_time": "PRESENT",
+      "distance_meters_snapshot": "PRESENT",
+      "duration_seconds_snapshot": "PRESENT",
+      "price_snapshot": "PRESENT",
+      "currency": "PRESENT",
+      "note": "PRESENT",
+      "notes": "PRESENT",
+      "status": "PRESENT",
+      "accepted_passenger_id": "PRESENT",
+      "accepted_request_id": "PRESENT",
+      "cancelled_by": "PRESENT",
+      "cancelled_at": "PRESENT",
+      "cancellation_reason": "PRESENT",
+      "cancellation_note": "PRESENT",
+      "expired_at": "PRESENT",
+      "started_at": "PRESENT",
+      "completed_at": "PRESENT",
+      "updated_at": "PRESENT",
+      "created_at": "PRESENT",
+      "available_seats": "PRESENT",
+      "pickup_time": "PRESENT",
+      "suggested_price": "PRESENT"
+    },
+    "trip_requests": {
+      "id": "PRESENT",
+      "trip_id": "PRESENT",
+      "passenger_id": "PRESENT",
+      "requested_pickup_time": "code:42703",
+      "match_score": "code:42703",
+      "message": "PRESENT",
+      "note": "code:42703",
+      "status": "PRESENT",
+      "responded_at": "PRESENT",
+      "responded_by": "PRESENT",
+      "created_at": "PRESENT",
+      "updated_at": "PRESENT"
+    },
+    "ratings": {
+      "id": "PRESENT",
+      "trip_id": "PRESENT",
+      "from_user_id": "PRESENT",
+      "to_user_id": "PRESENT",
+      "stars": "code:42703",
+      "score": "PRESENT",
+      "comment": "PRESENT",
+      "available_at": "PRESENT",
+      "created_at": "PRESENT"
+    },
+    "locations": {
+      "id": "PRESENT",
+      "name": "PRESENT",
+      "label": "code:42703",
+      "type": "code:42703",
+      "kind": "code:42703",
+      "latitude": "PRESENT",
+      "longitude": "PRESENT",
+      "lat": "code:42703",
+      "lng": "code:42703",
+      "university": "code:42703",
+      "campus": "code:42703",
+      "area": "code:42703",
+      "building": "code:42703",
+      "address": "PRESENT",
+      "code": "code:42703",
+      "created_at": "PRESENT"
+    },
+    "routes": {
+      "id": "PRESENT",
+      "origin_id": "code:42703",
+      "destination_id": "code:42703",
+      "from_location_id": "code:42703",
+      "to_location_id": "code:42703",
+      "origin_location_id": "code:42703",
+      "destination_location_id": "PRESENT",
+      "distance_meters": "PRESENT",
+      "duration_seconds": "PRESENT",
+      "created_at": "PRESENT"
+    },
+    "vehicles": {
+      "id": "PRESENT",
+      "driver_id": "code:42703",
+      "type": "code:42703",
+      "vehicle_type": "PRESENT",
+      "plate": "code:42703",
+      "license_plate": "PRESENT",
+      "brand": "PRESENT",
+      "model": "PRESENT",
+      "color": "PRESENT",
+      "created_at": "PRESENT"
+    }
+  },
+  "enums": {
+    "trips.status": {
+      "open": "ACCEPTED",
+      "full": "ACCEPTED",
+      "expired": "ACCEPTED",
+      "in_progress": "ACCEPTED",
+      "completed": "ACCEPTED",
+      "cancelled": "ACCEPTED",
+      "OPEN": "INVALID (invalid input value for enum trip_status: \"OPEN\")",
+      "FULL": "INVALID (invalid input value for enum trip_status: \"FULL\")",
+      "EXPIRED": "INVALID (invalid input value for enum trip_status: \"EXPIRED\")",
+      "IN_PROGRESS": "INVALID (invalid input value for enum trip_status: \"IN_PROGRESS\")",
+      "COMPLETED": "INVALID (invalid input value for enum trip_status: \"COMPLETED\")",
+      "CANCELLED": "INVALID (invalid input value for enum trip_status: \"CANCELLED\")",
+      "REQUESTED": "INVALID (invalid input value for enum trip_status: \"REQUESTED\")",
+      "ACCEPTED": "INVALID (invalid input value for enum trip_status: \"ACCEPTED\")",
+      "ACTIVE": "INVALID (invalid input value for enum trip_status: \"ACTIVE\")"
+    },
+    "trips.cancellation_reason": {
+      "driver_cancelled": "ACCEPTED",
+      "passenger_cancelled": "ACCEPTED",
+      "schedule_change": "INVALID (invalid input value for enum cancellation_reason: \"schedule_change\")",
+      "weather": "ACCEPTED",
+      "other": "ACCEPTED",
+      "DRIVER_CANCELLED": "INVALID (invalid input value for enum cancellation_reason: \"DRIVER_CANCELLED\")",
+      "OTHER": "INVALID (invalid input value for enum cancellation_reason: \"OTHER\")"
+    },
+    "trip_requests.status": {
+      "pending": "ACCEPTED",
+      "accepted": "ACCEPTED",
+      "rejected": "ACCEPTED",
+      "cancelled": "ACCEPTED",
+      "expired": "ACCEPTED",
+      "PENDING": "INVALID (invalid input value for enum trip_request_status: \"PENDING\")",
+      "ACCEPTED": "INVALID (invalid input value for enum trip_request_status: \"ACCEPTED\")",
+      "REJECTED": "INVALID (invalid input value for enum trip_request_status: \"REJECTED\")",
+      "CANCELLED": "INVALID (invalid input value for enum trip_request_status: \"CANCELLED\")"
+    },
+    "profiles.role": {
+      "user": "ACCEPTED",
+      "admin": "ACCEPTED",
+      "driver": "INVALID (invalid input value for enum user_role: \"driver\")",
+      "passenger": "INVALID (invalid input value for enum user_role: \"passenger\")",
+      "both": "INVALID (invalid input value for enum user_role: \"both\")",
+      "USER": "INVALID (invalid input value for enum user_role: \"USER\")",
+      "ADMIN": "INVALID (invalid input value for enum user_role: \"ADMIN\")",
+      "DRIVER": "INVALID (invalid input value for enum user_role: \"DRIVER\")",
+      "PASSENGER": "INVALID (invalid input value for enum user_role: \"PASSENGER\")",
+      "BOTH": "INVALID (invalid input value for enum user_role: \"BOTH\")"
+    },
+    "profiles.dorm_card_verified": {
+      "unverified": "code:42703",
+      "pending": "code:42703",
+      "verified": "code:42703",
+      "rejected": "code:42703",
+      "expired": "code:42703",
+      "need_review": "code:42703",
+      "PENDING": "code:42703",
+      "VERIFIED": "code:42703",
+      "REJECTED": "code:42703",
+      "NEED_REVIEW": "code:42703"
+    }
+  }
+}

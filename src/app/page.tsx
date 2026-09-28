@@ -3,480 +3,316 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-/* ═══════════════════════════════════════════════════
-   HOMEPAGE — KTX Carpooling
-   Design: Human-centered / Student Service Platform
-═══════════════════════════════════════════════════ */
-
-// ─── Static Data ──────────────────────────────────────────────────────────────
-
-const UNIVERSITIES = [
-  { id: 'HCMUS', short: 'HCMUS', full: 'Trường ĐH Khoa học Tự nhiên', icon: '🔬', campus: 'Linh Trung, Thủ Đức' },
-  { id: 'HCMUT', short: 'HCMUT', full: 'Trường ĐH Bách khoa',         icon: '⚙️', campus: 'Linh Trung, Thủ Đức' },
-  { id: 'UIT',   short: 'UIT',   full: 'Trường ĐH Công nghệ Thông tin',icon: '💻', campus: 'Linh Trung, Thủ Đức' },
-  { id: 'USSH',  short: 'USSH',  full: 'Trường ĐH Khoa học Xã hội & Nhân văn', icon: '📖', campus: 'Linh Trung, Thủ Đức' },
-  { id: 'IU',    short: 'IU',    full: 'Trường ĐH Quốc Tế',            icon: '🌐', campus: 'Linh Trung, Thủ Đức' },
-  { id: 'UEL',   short: 'UEL',   full: 'Trường ĐH Kinh tế – Luật',     icon: '⚖️', campus: 'Linh Trung, Thủ Đức' },
-];
-
-const BENEFITS = [
-  {
-    icon: (
-      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-    ),
-    title: 'Kết nối sinh viên cùng tuyến',
-    desc: 'Thuật toán tự động ghép những sinh viên ở cùng khu KTX, đi cùng trường và cùng giờ học. Độ lệch giờ đón tối đa 5 phút.',
-  },
-  {
-    icon: (
-      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/>
-      </svg>
-    ),
-    title: 'Xác minh sinh viên KTX',
-    desc: 'Chỉ sinh viên đang ở tại KTX Khu A hoặc Khu B có thẻ KTX đã được xác minh mới có thể đăng chuyến hoặc gửi yêu cầu.',
-  },
-  {
-    icon: (
-      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-      </svg>
-    ),
-    title: 'Chia sẻ chi phí minh bạch',
-    desc: 'Chi phí đóng góp được tính tự động theo khoảng cách thực tế (2.000đ/km). Thanh toán trực tiếp giữa hai người.',
-  },
-  {
-    icon: (
-      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-      </svg>
-    ),
-    title: 'Đánh giá và hồ sơ rõ ràng',
-    desc: 'Mỗi tài xế có điểm uy tín, số chuyến hoàn thành và nhận xét từ hành khách. Bạn biết mình đi với ai trước khi xuất phát.',
-  },
-];
-
-const STEPS = [
-  { num: '01', title: 'Đăng ký tài khoản sinh viên', desc: 'Tạo tài khoản bằng email trường và xác minh thẻ KTX để dùng đầy đủ tính năng.', color: '#2563eb' },
-  { num: '02', title: 'Tìm hoặc đăng một chuyến đi', desc: 'Tìm chuyến theo ngày, giờ và trường đến — hoặc tự đăng chuyến nếu bạn có xe.', color: '#ea580c' },
-  { num: '03', title: 'Gửi yêu cầu ghép chuyến', desc: 'Chọn chuyến phù hợp nhất và gửi yêu cầu. Tài xế sẽ xem xét và phản hồi.', color: '#16a34a' },
-  { num: '04', title: 'Xác nhận và lên đường', desc: 'Sau khi tài xế chấp nhận, hai bên nhắn tin trao đổi điểm đón rồi cùng đến trường.', color: '#7c3aed' },
-];
-
-// ─── Header ───────────────────────────────────────────────────────────────────
-
-function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  return (
-    <header style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-default)' }}
-      className="sticky top-0 z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0 no-underline">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-base font-bold select-none">K</div>
-          <div className="leading-none">
-            <p className="text-sm font-700 text-gray-900 font-bold">KTX Carpooling</p>
-            <p className="text-[10px] text-gray-400">ĐHQG-HCM</p>
-          </div>
-        </Link>
-
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-0.5 text-sm">
-          <Link href="/trips" className="px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors font-medium">
-            Tìm chuyến đi
-          </Link>
-          <Link href="/trips/create" className="px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors font-medium">
-            Đăng chuyến
-          </Link>
-          <a href="#how-it-works" className="px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors font-medium">
-            Hướng dẫn
-          </a>
-        </nav>
-
-        {/* Auth — Desktop */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link href="/login" className="btn btn-ghost btn-sm">Đăng nhập</Link>
-          <Link href="/register" className="btn btn-primary btn-sm">Đăng ký</Link>
-        </div>
-
-        {/* Hamburger — Mobile */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label="Mở menu"
-        >
-          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            {menuOpen
-              ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
-              : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>
-            }
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div style={{ borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}
-          className="md:hidden px-4 py-3 space-y-1">
-          <Link href="/trips" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Tìm chuyến đi</Link>
-          <Link href="/trips/create" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Đăng chuyến đi</Link>
-          <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">Hướng dẫn</a>
-          <div className="pt-2 flex gap-2" style={{ borderTop: '1px solid var(--border-default)' }}>
-            <Link href="/login" onClick={() => setMenuOpen(false)} className="btn btn-ghost flex-1 text-center">Đăng nhập</Link>
-            <Link href="/register" onClick={() => setMenuOpen(false)} className="btn btn-primary flex-1 text-center">Đăng ký</Link>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
-
-// ─── Hero Section ─────────────────────────────────────────────────────────────
-
-function HeroSection() {
-  return (
-    <section className="bg-white border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-
-        {/* Text */}
-        <div className="space-y-5 max-w-lg">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
-            style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)', border: '1px solid var(--color-primary-border)' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block shrink-0"></span>
-            Kết nối sinh viên KTX Khu A & Khu B
-          </div>
-
-          <h1 className="text-gray-900">
-            Đi học cùng tuyến đường,{' '}
-            <span style={{ color: 'var(--color-primary)' }}>tiết kiệm hơn</span>{' '}
-            mỗi ngày
-          </h1>
-
-          <p className="text-gray-500 text-base leading-relaxed">
-            Kết nối sinh viên ký túc xá có xe máy với những bạn cùng hướng đến trường.
-            Tìm chuyến, đăng chuyến và chia sẻ chi phí một cách thuận tiện, minh bạch và an toàn.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-1">
-            <Link href="/trips" className="btn btn-primary btn-lg">
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              Tìm chuyến đi
-            </Link>
-            <Link href="/trips/create" className="btn btn-ghost btn-lg">
-              Đăng chuyến của tôi
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2 text-xs text-gray-500">
-            <span className="flex items-center gap-1.5">
-              <svg width="13" height="13" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-              Chỉ sinh viên đã xác minh KTX
-            </span>
-            <span className="flex items-center gap-1.5">
-              <svg width="13" height="13" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-              6 trường đại học thành viên
-            </span>
-            <span className="flex items-center gap-1.5">
-              <svg width="13" height="13" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-              2.000đ/km, tối thiểu 5.000đ
-            </span>
-          </div>
-        </div>
-
-        {/* Illustration */}
-        <div className="hidden md:block">
-          <div className="relative">
-            <img
-              src="/hero-illustration.jpg"
-              alt="Sinh viên đi học cùng xe máy từ KTX"
-              className="w-full rounded-2xl object-cover"
-              style={{ aspectRatio: '4/3', border: '1px solid var(--border-default)' }}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Quick Search Form ────────────────────────────────────────────────────────
-
-function QuickSearchSection() {
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  return (
-    <section className="bg-white border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-gray-900 text-lg font-semibold mb-5 text-center">Tìm chuyến đi nhanh</h2>
-
-          <form action="/trips" method="get"
-            className="space-y-3 p-5 rounded-2xl border border-gray-200 bg-gray-50">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="form-label" htmlFor="qs-university">Trường đại học đến</label>
-                <select id="qs-university" name="university" className="form-select">
-                  <option value="">Tất cả các trường</option>
-                  {UNIVERSITIES.map(u => (
-                    <option key={u.id} value={u.id}>{u.short} – {u.full.replace('Trường ĐH ', '')}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="form-label" htmlFor="qs-date">Ngày đi</label>
-                <input id="qs-date" name="date" type="date" defaultValue={todayStr} className="form-input" />
-              </div>
-            </div>
-
-            <button type="submit" className="btn btn-primary w-full">
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              Tìm chuyến đi
-            </button>
-          </form>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Universities Grid ────────────────────────────────────────────────────────
-
-function UniversitiesSection() {
-  return (
-    <section style={{ background: 'var(--bg-subtle)' }} className="border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <div>
-            <h2 className="text-gray-900">Chuyến đi theo trường đại học</h2>
-            <p className="text-gray-500 text-sm mt-1">Chọn trường của bạn để xem các chuyến đang mở</p>
-          </div>
-          <Link href="/trips" className="text-sm font-semibold text-blue-600 hover:text-blue-700 shrink-0">
-            Xem tất cả chuyến →
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {UNIVERSITIES.map((u) => (
-            <Link
-              key={u.id}
-              href={`/trips?university=${u.id}`}
-              className="card card-hover flex flex-col items-center gap-2 p-4 text-center transition-colors"
-            >
-              <span className="text-2xl leading-none">{u.icon}</span>
-              <span className="text-sm font-bold text-gray-800">{u.short}</span>
-              <span className="text-[11px] text-gray-500 leading-tight">{u.full.replace('Trường ĐH ', '').replace('Trường ', '')}</span>
-              <span className="text-xs text-blue-600 font-medium mt-1">Xem chuyến →</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Benefits ────────────────────────────────────────────────────────────────
-
-function BenefitsSection() {
-  return (
-    <section className="bg-white border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 space-y-10">
-        <div className="text-center max-w-lg mx-auto space-y-2">
-          <h2 className="text-gray-900">Vì sao sinh viên tin dùng?</h2>
-          <p className="text-gray-500 text-sm">Xây dựng dành riêng cho cộng đồng sinh viên ký túc xá ĐHQG-HCM</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {BENEFITS.map((b, i) => (
-            <div key={i} className="p-5 space-y-3 rounded-xl border border-gray-200 bg-gray-50 hover:border-blue-200 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-600 shadow-sm">
-                {b.icon}
-              </div>
-              <h3 className="text-gray-900 text-sm">{b.title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">{b.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── How It Works ─────────────────────────────────────────────────────────────
-
-function HowItWorksSection() {
-  return (
-    <section id="how-it-works" style={{ background: 'var(--bg-subtle)' }} className="border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 space-y-10">
-        <div className="text-center max-w-lg mx-auto space-y-2">
-          <h2 className="text-gray-900">Bắt đầu chỉ với 4 bước</h2>
-          <p className="text-gray-500 text-sm">Đơn giản, nhanh chóng và miễn phí đăng ký</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-          {/* Connector (desktop) */}
-          <div className="hidden lg:block absolute top-[22px] left-[calc(12.5%+1rem)] right-[calc(12.5%+1rem)] h-px bg-gray-200 z-0" />
-
-          {STEPS.map((s, i) => (
-            <div key={i} className="relative z-10 flex flex-col items-center text-center gap-3">
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md shrink-0"
-                style={{ background: s.color }}
-              >
-                {s.num}
-              </div>
-              <h3 className="text-gray-900 text-sm font-semibold">{s.title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center">
-          <Link href="/register" className="btn btn-primary">
-            Tạo tài khoản — Miễn phí
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Trust Section ────────────────────────────────────────────────────────────
-
-function TrustSection() {
-  const TRUST_ITEMS = [
-    { icon: '🪪', title: 'Xác minh thông tin sinh viên', desc: 'Mỗi tài khoản phải đính kèm thẻ KTX hợp lệ và được ban quản trị xét duyệt trước khi sử dụng.' },
-    { icon: '📋', title: 'Thông tin chuyến đi rõ ràng', desc: 'Điểm đón, điểm đến, giờ xuất phát và mức đóng góp được hiển thị minh bạch trước khi gửi yêu cầu.' },
-    { icon: '⭐', title: 'Đánh giá sau mỗi chuyến', desc: 'Hành khách và tài xế đều có thể đánh giá nhau sau khi hoàn thành chuyến, giúp duy trì chất lượng cộng đồng.' },
-    { icon: '🚩', title: 'Báo cáo sự cố', desc: 'Nếu có vấn đề phát sinh, bạn có thể báo cáo và ban quản trị sẽ xem xét xử lý theo quy trình.' },
-  ];
-
-  return (
-    <section className="bg-white border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 space-y-10">
-        <div className="text-center max-w-lg mx-auto space-y-2">
-          <h2 className="text-gray-900">Minh bạch và có trách nhiệm</h2>
-          <p className="text-gray-500 text-sm">
-            Chúng tôi không đảm bảo tuyệt đối, nhưng cung cấp đầy đủ công cụ để bạn ra quyết định có thông tin.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {TRUST_ITEMS.map((item, i) => (
-            <div key={i} className="flex gap-4 p-5 rounded-xl border border-gray-200 bg-gray-50">
-              <div className="text-xl shrink-0 mt-0.5">{item.icon}</div>
-              <div className="space-y-1">
-                <h3 className="text-gray-900 text-sm">{item.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Stats Bar ───────────────────────────────────────────────────────────────
-
-function StatsBar() {
-  return (
-    <section style={{ background: 'var(--bg-subtle)' }} className="border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[
-            { label: 'Khu vực phục vụ',      value: 'KTX A & B' },
-            { label: 'Trường đại học',         value: '6 trường' },
-            { label: 'Chi phí tham khảo',      value: '2.000đ/km' },
-            { label: 'Yêu cầu xác minh',       value: 'Thẻ KTX' },
-          ].map((s, i) => (
-            <div key={i}>
-              <p className="text-xl font-bold text-blue-600">{s.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Footer ──────────────────────────────────────────────────────────────────
-
-function Footer() {
-  return (
-    <footer className="bg-gray-900 text-gray-400">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pb-8 border-b border-gray-800">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center text-white text-xs font-bold">K</div>
-              <span className="text-white font-semibold text-sm">KTX Carpooling</span>
-            </div>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Nền tảng ghép xe máy dành riêng cho sinh viên ký túc xá ĐHQG-HCM.<br/>
-              Phát triển bởi sinh viên, phục vụ cộng đồng sinh viên.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Dịch vụ</p>
-            <ul className="space-y-2 text-xs">
-              {[
-                ['Tìm chuyến đi', '/trips'],
-                ['Đăng chuyến đi', '/trips/create'],
-                ['Yêu cầu ghép chuyến', '/requests'],
-                ['Xác minh thẻ KTX', '/profile/verify'],
-              ].map(([label, href]) => (
-                <li key={href}><Link href={href} className="hover:text-white transition-colors">{label}</Link></li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Trường phục vụ</p>
-            <div className="flex flex-wrap gap-2">
-              {UNIVERSITIES.map(u => (
-                <span key={u.id} className="px-2.5 py-1 text-xs rounded bg-gray-800 text-gray-400">{u.short}</span>
-              ))}
-            </div>
-            <p className="text-xs text-gray-600 mt-2">KTX Khu A & Khu B – Linh Trung, TP. Thủ Đức</p>
-          </div>
-        </div>
-
-        <div className="pt-6 flex flex-col sm:flex-row justify-between gap-2 text-xs text-gray-600">
-          <p>© 2026 KTX Carpooling – Dự án sinh viên phi lợi nhuận</p>
-          <p>Chỉ dành cho sinh viên KTX ĐHQG-HCM đã xác minh</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-// ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function HomePage() {
+  const [imgSrc, setImgSrc] = useState('/Anhbia.png');
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <HeroSection />
-        <QuickSearchSection />
-        <UniversitiesSection />
-        <BenefitsSection />
-        <HowItWorksSection />
-        <TrustSection />
-        <StatsBar />
-      </main>
-      <Footer />
+    <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans selection:bg-blue-100 selection:text-blue-700">
+      {/* ─── 1. Header / Navbar ─────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          {/* Brand Logo & Name */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-blue-50 border border-blue-100 p-0.5 flex items-center justify-center shrink-0">
+              <img
+                src="/Logo.png"
+                alt="KTX Carpooling Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <span className="font-black text-lg tracking-tight text-slate-900 leading-none block group-hover:text-blue-600 transition-colors">
+                KTX Carpooling
+              </span>
+              <span className="text-[11px] font-medium text-slate-500 tracking-normal block mt-0.5">
+                Kết nối sinh viên – Cùng đi xa hơn
+              </span>
+            </div>
+          </Link>
+
+          {/* Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+            <Link href="/" className="text-blue-600 font-bold border-b-2 border-blue-600 pb-0.5">
+              Trang chủ
+            </Link>
+            <Link href="/trips" className="hover:text-blue-600 transition">
+              Tìm chuyến đi
+            </Link>
+            <Link href="/trips/create" className="hover:text-blue-600 transition">
+              Đăng chuyến
+            </Link>
+            <a href="#how-it-works" className="hover:text-blue-600 transition">
+              Hướng dẫn
+            </a>
+            <a href="#why-us" className="hover:text-blue-600 transition">
+              Về chúng tôi
+            </a>
+          </nav>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"
+              aria-label="Thông báo"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+
+            <Link
+              href="/login"
+              className="w-10 h-10 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition"
+              aria-label="Tài khoản"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* ─── 2. Hero Section ──────────────────────────────────────────────────── */}
+      <section className="py-12 lg:py-16 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Content */}
+            <div className="lg:col-span-6 space-y-6">
+              {/* Tag Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
+                <svg className="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Nền tảng kết nối sinh viên Ký túc xá ĐHQG-HCM</span>
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.2]">
+                Đi học cùng tuyến, <br />
+                <span className="text-blue-600">tiết kiệm & an toàn</span> mỗi ngày
+              </h1>
+
+              {/* Sub-headline */}
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
+                KTX Carpooling là nền tảng giúp sinh viên tại Ký túc xá Khu A và Khu B ĐHQG-HCM kết nối với nhau,
+                chia sẻ chuyến xe đi học hàng ngày, tiết kiệm chi phí và đảm bảo an toàn trên mọi hành trình.
+              </p>
+
+              {/* 4 Feature Badges Grid (100% Clean Vector SVG Icons) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+                {/* Feature 1 */}
+                <div className="space-y-1.5">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="font-extrabold text-slate-900 text-sm">Tiết kiệm chi phí</div>
+                  <div className="text-xs text-slate-500 leading-snug">Chia sẻ chi phí, giảm gánh nặng tài chính</div>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="space-y-1.5">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <div className="font-extrabold text-slate-900 text-sm">An toàn, đáng tin cậy</div>
+                  <div className="text-xs text-slate-500 leading-snug">Thông tin minh bạch, có xác thực sinh viên</div>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="space-y-1.5">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div className="font-extrabold text-slate-900 text-sm">Kết nối cộng đồng</div>
+                  <div className="text-xs text-slate-500 leading-snug">Gặp gỡ, làm quen với nhiều bạn mới</div>
+                </div>
+
+                {/* Feature 4 */}
+                <div className="space-y-1.5">
+                  <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="font-extrabold text-slate-900 text-sm">Linh hoạt, tiện lợi</div>
+                  <div className="text-xs text-slate-500 leading-snug">Dễ dàng tìm hoặc đăng chuyến phù hợp</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Photo Frame */}
+            <div className="lg:col-span-6 relative flex justify-center items-center">
+              <img
+                src={imgSrc}
+                onError={() => {
+                  if (imgSrc === '/Anhbia.png') {
+                    setImgSrc('/students-hero.jpg');
+                  }
+                }}
+                alt="Sinh viên KTX ĐHQG-HCM"
+                className="w-full h-auto max-w-xl object-contain drop-shadow-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 3. Why Choose Us Section ─────────────────────────────────────────── */}
+      <section id="why-us" className="py-14 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="p-8 sm:p-12 rounded-3xl bg-blue-50/60 border border-blue-100 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              {/* Left Title & Intro */}
+              <div className="lg:col-span-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Tại sao chọn chúng tôi</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                  Giải pháp di chuyển tối ưu cho sinh viên KTX
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Thiết kế dành riêng cho cộng đồng sinh viên ĐHQG-HCM ở Ký túc xá Khu A và Khu B.
+                </p>
+              </div>
+
+              {/* 3 Value Cards */}
+              <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {/* Card 1 */}
+                <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3 hover:shadow-md transition">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Tuyến đường tối ưu</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Thuật toán thông minh tự động tìm tuyến đường ngắn nhất giữa các điểm đón trong KTX và các trường đại học.
+                  </p>
+                </div>
+
+                {/* Card 2 */}
+                <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3 hover:shadow-md transition">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Cộng đồng văn minh</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Tất cả người dùng đều là sinh viên KTX ĐHQG-HCM, lịch sự, đúng giờ và sẵn sàng chia sẻ kinh nghiệm học tập.
+                  </p>
+                </div>
+
+                {/* Card 3 */}
+                <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3 hover:shadow-md transition">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Hỗ trợ nhanh chóng</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Đội ngũ hỗ trợ sinh viên 24/7, xử lý nhanh mọi sự cố phát sinh trong quá trình đi chung xe.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 4. How It Works Section ──────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-14 bg-slate-50/70 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+              <span>Quy trình sử dụng</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              3 bước đơn giản để bắt đầu chia sẻ chuyến đi
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Step 1 */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm relative space-y-4">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base">
+                1
+              </div>
+              <h3 className="font-extrabold text-slate-900 text-lg">Đăng ký & Xác thực</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Tạo tài khoản bằng Email sinh viên hoặc Mã số sinh viên để xác thực danh tính KTX Khu A hoặc Khu B.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm relative space-y-4">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base">
+                2
+              </div>
+              <h3 className="font-extrabold text-slate-900 text-lg">Tìm hoặc Đăng chuyến</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Nhập điểm đi (Khu A/B KTX), điểm đến (Trường đại học) và thời gian xuất phát mong muốn.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm relative space-y-4">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base">
+                3
+              </div>
+              <h3 className="font-extrabold text-slate-900 text-lg">Đi chung & Chia sẻ</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Gặp nhau tại điểm hẹn ở KTX, di chuyển an toàn đến trường và chia sẻ chi phí trực tiếp.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 5. Footer ───────────────────────────────────────────────────────── */}
+      <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-8 border-b border-slate-800">
+            {/* Brand Footer */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0">
+                <img src="/Logo.png" alt="KTX Carpooling" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <span className="font-black text-white text-base tracking-tight block">
+                  KTX Carpooling
+                </span>
+                <span className="text-xs text-slate-400 block">
+                  Nền tảng chia sẻ chuyến đi sinh viên KTX ĐHQG-HCM
+                </span>
+              </div>
+            </div>
+
+            {/* Footer Links */}
+            <div className="flex flex-wrap gap-6 text-xs font-semibold text-slate-400">
+              <Link href="/trips" className="hover:text-white transition">Tìm chuyến</Link>
+              <Link href="/trips/create" className="hover:text-white transition">Đăng chuyến</Link>
+              <a href="#how-it-works" className="hover:text-white transition">Hướng dẫn</a>
+              <a href="#why-us" className="hover:text-white transition">Về chúng tôi</a>
+            </div>
+          </div>
+
+          <div className="text-center text-xs text-slate-500">
+            © {new Date().getFullYear()} KTX Carpooling. Phát triển dành riêng cho sinh viên Ký túc xá ĐHQG-HCM.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
